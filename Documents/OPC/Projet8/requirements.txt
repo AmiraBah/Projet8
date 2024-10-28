@@ -1,6 +1,8 @@
 dash
+dash_table
 plotly
 pandas
 requests
+
 
 

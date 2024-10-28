@@ -9,6 +9,7 @@ import io
 import base64
 
 app = dash.Dash(__name__)
+app.title = "Dashboard Crédit Score"  # Ajout d'un titre de page
 
 # Layout du tableau de bord avec des onglets
 app.layout = html.Div([
@@ -31,7 +32,7 @@ app.layout = html.Div([
         ]),
         dcc.Tab(label='2. Crédit Score', children=[
             dcc.Graph(id='gauge-score'),
-            html.Div(id='resultat-score')
+            html.Div(id='resultat-score', style={'fontSize': '1.2em'})  # Amélioration de la taille du texte
         ]),
         dcc.Tab(label='3. Information générale', children=[
             dcc.Dropdown(id='dropdown-variables', multi=True, placeholder='Sélectionnez les variables'),
@@ -114,43 +115,49 @@ def update_gauge(client_id, content, filename):
         return {}, "Veuillez sélectionner un client et télécharger des données."
     
     df = parse_contents(content, filename)
-    
-    # Filtrer le client sélectionné
     client_data = df[df['SK_ID_CURR'] == client_id]
     
     if client_data.empty:
         return {}, "Client non trouvé dans les données."
     
-    # Filtrer les colonnes pour ne pas envoyer `TARGET` et `SK_ID_CURR` à l'API
     client_data_filtered = client_data.drop(columns=['TARGET', 'SK_ID_CURR'], errors='ignore')
-    
-    # Convertir les données en format dictionnaire (attendu par l'API)
     features = client_data_filtered.to_dict(orient='records')[0]
     
     try:
-        # Appel à l'API pour récupérer la probabilité
         response = requests.post('http://localhost:8000/predict', json=features)
         
         if response.status_code != 200:
             return {}, f"Erreur lors de la récupération des données : {response.status_code}"
         
-        data = response.json()  # Obtenir la réponse JSON de l'API
+        data = response.json()
         prob = data.get('probability')
         label = data.get('class')
         
         if prob is None or label is None:
             return {}, "Erreur: Données manquantes dans la réponse de l'API."
         
+        # Définir les couleurs en fonction de l'étiquette
+        bar_color = "green" if label == "Accepted" else "red"
+        
         figure = go.Figure(go.Indicator(
             mode="gauge+number",
             value=prob,
-            title={'text': "Score Crédit"},
+            title={'text': "Score Crédit", 'font': {'size': 20}},
             gauge={
-                'axis': {'range': [0, 1]},
-                'bar': {'color': "green" if label == "Accepted" else "red"},
-                'threshold': {'line': {'color': "black", 'width': 4}, 'thickness': 0.75, 'value': 0.53}
+                'axis': {'range': [0, 1], 'tickwidth': 2},
+                'bar': {'color': bar_color},
+                'steps': [
+                    {'range': [0, 0.53], 'color': 'red', 'name': 'Refusé'},
+                    {'range': [0.53, 1], 'color': 'green', 'name': 'Accepté'}
+                ],
+                'threshold': {
+                    'line': {'color': "black", 'width': 4}, 
+                    'thickness': 0.75, 
+                    'value': 0.53
+                }
             }
         ))
+        figure.update_layout(title="Jauge du score de crédit, indiquant un score de 0 à 1 pour la probabilité d'acceptation du crédit") 
         return figure, f"Résultat : {label}"
     
     except Exception as e:
@@ -204,7 +211,7 @@ def update_feature_importances(client_id, content, filename):
         
         # Visualisation des importances globales
         fig_global = px.bar(global_importance_series.sort_values(ascending=False), 
-                            title="Importance des Features Globales",
+                            title="Importance des features globales",
                             labels={'index': 'Features', 'value': 'Importance'},
                             color='value', color_continuous_scale=px.colors.sequential.Viridis)
 
@@ -214,16 +221,16 @@ def update_feature_importances(client_id, content, filename):
         top_local_features = local_importance_series.nlargest(3).index.tolist()
         
         fig_local = px.bar(local_importance_series.sort_values(ascending=False), 
-                           title=f"Importance des Features Locales pour le Client {client_id}",
+                           title=f"Importance des features locales",
                            labels={'index': 'Features', 'value': 'Valeurs'},
                            color='value', color_continuous_scale=px.colors.sequential.Viridis)
         
-        return fig_global, fig_local, f"Top 3 des Features Globales : {', '.join(top_global_features)}"
+        return fig_global, fig_local, f"Top 3 features globales : {', '.join(top_global_features)}\nTop 3 features locales : {', '.join(top_local_features)}"
     
     except Exception as e:
         return {}, {}, f"Erreur lors de l'appel à l'API pour les importances des features : {str(e)}"
 
-# Callback pour la comparaison des clients
+# Callback pour afficher la comparaison entre les clients
 @app.callback(
     Output('histogram-comparison', 'figure'),
     Input('dropdown-clients-comparison', 'value'),
@@ -231,69 +238,35 @@ def update_feature_importances(client_id, content, filename):
     State('upload-data', 'contents'),
     State('upload-data', 'filename')
 )
-def update_comparison(clients, variables, content, filename):
-    if not clients or not variables or content is None:
+def update_histogram(clients, variables, content, filename):
+    if clients is None or variables is None or content is None:
         return {}
     
     df = parse_contents(content, filename)
     
-    # Vérifier si les clients sélectionnés existent dans les données
-    if not all(client in df['SK_ID_CURR'].values for client in clients):
+    filtered_df = df[df['SK_ID_CURR'].isin(clients)]
+    
+    if filtered_df.empty:
         return {}
     
-    # Filtrer les données pour les clients sélectionnés et les variables choisies
-    filtered_data = df[df['SK_ID_CURR'].isin(clients)][['SK_ID_CURR'] + variables]
-    
-    # Vérifiez si les variables sélectionnées sont dans les colonnes du DataFrame
-    missing_columns = [var for var in variables if var not in df.columns]
-    if missing_columns:
-        return {}
-
-    # Créer le graphique
-    fig = px.histogram(filtered_data.melt(id_vars='SK_ID_CURR'), 
-                       x='variable', y='value', color='SK_ID_CURR', barmode='group',
-                       title="Comparaison des Clients")
+    fig = px.histogram(filtered_df, x=variables[0], color='SK_ID_CURR', title="Comparaison des clients")
     return fig
 
-# Callback pour l'analyse bivariée avec mise en avant du client
+# Callback pour l'analyse bivariée
 @app.callback(
     Output('bivariate-analysis', 'figure'),
-    Input('dropdown-client', 'value'),  # Le client étudié
     Input('dropdown-x', 'value'),
     Input('dropdown-y', 'value'),
     State('upload-data', 'contents'),
     State('upload-data', 'filename')
 )
-def update_bivariate_analysis(client_id, x_var, y_var, content, filename):
-    if not x_var or not y_var or content is None:
+def update_bivariate_analysis(x_var, y_var, content, filename):
+    if x_var is None or y_var is None or content is None:
         return {}
     
     df = parse_contents(content, filename)
     
-    # Vérifier si les variables sont dans le DataFrame
-    if x_var not in df.columns or y_var not in df.columns:
-        return {}
-    
-    # Création du graphique de base pour tous les clients
-    fig = px.scatter(df, x=x_var, y=y_var, title=f"Analyse Bivariée entre {x_var} et {y_var}",
-                     labels={x_var: x_var, y_var: y_var}, opacity=0.5)
-
-    # Mettre en évidence le client sélectionné
-    if client_id is not None and client_id in df['SK_ID_CURR'].values:
-        client_data = df[df['SK_ID_CURR'] == client_id]
-        
-        # Ajouter un point distinct pour le client sélectionné
-        fig.add_trace(
-            go.Scatter(
-                x=client_data[x_var],
-                y=client_data[y_var],
-                mode='markers',
-                marker=dict(size=12, color='red', symbol='circle'),
-                name=f'Client {client_id}',  # Légende pour le client étudié
-                showlegend=True
-            )
-        )
-    
+    fig = px.scatter(df, x=x_var, y=y_var, title=f"Analyse bivariée entre {x_var} et {y_var}")
     return fig
 
 if __name__ == '__main__':

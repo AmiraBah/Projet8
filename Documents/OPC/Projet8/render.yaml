@@ -1,0 +1,9 @@
+version: 1
+services:
+  - type: web
+    name: Bahou_Amira_1_dashboard_102024
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py  
