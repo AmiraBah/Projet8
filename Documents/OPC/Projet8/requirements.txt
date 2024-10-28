@@ -1,10 +1,7 @@
-fastapi
-uvicorn
-joblib
+dash
+dash-bootstrap-components
 pandas
-scikit-learn
-joblib  
-numpy
-pytest
-httpx  
+plotly
+requests
+gunicorn
 
