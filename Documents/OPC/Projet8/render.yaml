@@ -2,7 +2,7 @@ services:
   - type: web
     name: dash-app
     env: python
-    region: oregon # ou un autre emplacement selon votre choix
+    region: oregon  # ou une autre région de votre choix
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn Bahou_Amira_1_dashboard_102024:app  # Ajustez le nom du fichier ici
     autoDeploy: true
