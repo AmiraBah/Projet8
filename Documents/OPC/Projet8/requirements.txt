@@ -1,4 +1,10 @@
-dash
+fastapi
+uvicorn
+joblib
 pandas
-requests
-plotly
+scikit-learn
+joblib  
+numpy
+pytest
+httpx  
+
