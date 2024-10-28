@@ -94,6 +94,23 @@ async def predict(features: dict):
         logging.info(f"Prediction made: probability={prob[0]}, class={label}")
     except Exception as e:
         logging.error(f"Error during prediction: {e}")
-        raise HTTPException(status_code=500, detail="Error during prediction.")
+        raise HTTPException(status_code=500, detail=f"Error during prediction: {str(e)}")
     
     return {"probability": prob[0], "class": label}
+
+
+# Route API pour obtenir les importances des caractéristiques
+@app.get("/feature_importances")
+async def get_feature_importances():
+    try:
+        # Extraire le modèle de régression logistique du pipeline
+        logistic_model = pipeline.named_steps['classifier']
+        feature_importances = logistic_model.coef_[0]  # Récupérer les coefficients du modèle
+
+        # Associer les coefficients aux noms de caractéristiques
+        features_importances_dict = dict(zip(expected_features, feature_importances))
+        
+        return features_importances_dict
+    except Exception as e:
+        logging.error(f"Erreur lors de la récupération des importances des caractéristiques : {e}")
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des importances : {str(e)}")
