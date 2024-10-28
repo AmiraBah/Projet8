@@ -241,32 +241,59 @@ def update_feature_importances(client_id, content, filename):
 def update_histogram(clients, variables, content, filename):
     if clients is None or variables is None or content is None:
         return {}
-    
+
     df = parse_contents(content, filename)
-    
+
     filtered_df = df[df['SK_ID_CURR'].isin(clients)]
-    
+
     if filtered_df.empty:
         return {}
-    
-    fig = px.histogram(filtered_df, x=variables[0], color='SK_ID_CURR', title="Comparaison des clients")
+
+    # Création de l'histogramme avec mode de barres 'group'
+    fig = px.histogram(
+        filtered_df,
+        x=variables[0],
+        color='SK_ID_CURR',
+        title="Comparaison des clients",
+        barmode='group'  # Utilisation de 'group' pour séparer les barres  # Optionnel: normaliser par pourcentage si souhaité
+    )
+
+    # Simplification de l'axe des x sans valeurs spécifiques
+    fig.update_xaxes(title_text=variables[0], showticklabels=False, ticks="", title_font=dict(size=16))
+
+    # Mise à jour de la mise en page pour éviter le chevauchement
+    fig.update_layout(xaxis_title_text=variables[0], barmode='group')  # Assurez-vous que le mode de barre est correct
+
     return fig
+
 
 # Callback pour l'analyse bivariée
 @app.callback(
     Output('bivariate-analysis', 'figure'),
     Input('dropdown-x', 'value'),
     Input('dropdown-y', 'value'),
+    Input('dropdown-client', 'value'),  # Ajout du client sélectionné
     State('upload-data', 'contents'),
     State('upload-data', 'filename')
 )
-def update_bivariate_analysis(x_var, y_var, content, filename):
+def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
     if x_var is None or y_var is None or content is None:
         return {}
     
     df = parse_contents(content, filename)
     
-    fig = px.scatter(df, x=x_var, y=y_var, title=f"Analyse bivariée entre {x_var} et {y_var}")
+    # Ajouter une colonne pour indiquer si chaque ligne est le client sélectionné
+    df['client intérêt'] = df['SK_ID_CURR'] == client_id
+    
+    fig = px.scatter(
+        df, 
+        x=x_var, 
+        y=y_var, 
+        color='client intérêt',  # Utiliser la colonne pour la couleur
+        title=f"Analyse bivariée entre {x_var} et {y_var}",
+        color_discrete_map={True: 'red', False: 'blue'},  # Choisir les couleurs
+    )
+    
     return fig
 
 if __name__ == '__main__':
