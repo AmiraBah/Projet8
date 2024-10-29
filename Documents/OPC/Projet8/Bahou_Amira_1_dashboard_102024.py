@@ -9,7 +9,7 @@ import io
 import base64
 
 app = dash.Dash(__name__)
-app.title = "Dashboard Crédit Score"  # Ajout d'un titre de page
+app.title = "Dashboard Crédit Score"  
 
 # Layout du tableau de bord avec des onglets
 app.layout = html.Div([
@@ -292,9 +292,22 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         color='client intérêt',  # Utiliser la colonne pour la couleur
         title=f"Analyse bivariée entre {x_var} et {y_var}",
         color_discrete_map={True: 'red', False: 'blue'},  # Choisir les couleurs
+        labels={'client intérêt': ''}  # Enlever l'étiquette de la légende
+    )
+    
+    # Supprimer la légende
+    fig.update_layout(showlegend=False)
+
+    # Ajouter une annotation sous le graphique
+    fig.add_annotation(
+        text="Client sélectionné en rouge",  # Texte de l'annotation
+        xref="paper", yref="paper",  # Références du système de coordonnées
+        x=0.5, y=-0.1,  # Position du texte (ajuster y selon vos besoins)
+        showarrow=False,
+        font=dict(size=12)  # Taille de la police (ajuster selon vos besoins)
     )
     
     return fig
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(host='0.0.0.0', port=10000, debug=True)
