@@ -9,10 +9,11 @@ import io
 import base64
 
 app = dash.Dash(__name__)
-app.title = "Dashboard Crédit Score"  
+app.title = "Dashboard Crédit Score"
 
-# Layout du tableau de bord avec des onglets
-app.layout = html.Div([
+# Layout du tableau de bord avec des onglets et une taille de police par défaut
+
+app.layout = html.Div(style={'fontSize': '20px'},children=[  # Enlever la taille de police par défaut
     dcc.Tabs([
         dcc.Tab(label='1. Chargement des données', children=[
             dcc.Upload(
@@ -27,16 +28,26 @@ app.layout = html.Div([
                     'borderRadius': '5px', 'textAlign': 'center', 'margin': '10px'
                 },
             ),
-            html.Div(id='output-data-upload'),
-            dcc.Dropdown(id='dropdown-client', placeholder='Sélectionnez un client'),
+            html.Div(id='output-data-upload'),  # Retirer style pour la taille de police
+            dcc.Dropdown(id='dropdown-client', placeholder='Sélectionnez un client'),  # Retirer style pour la taille de police
+            # Enlever le label pour la taille de police
         ]),
         dcc.Tab(label='2. Crédit Score', children=[
             dcc.Graph(id='gauge-score'),
-            html.Div(id='resultat-score', style={'fontSize': '1.2em'})  # Amélioration de la taille du texte
+            html.Div(id='resultat-score', style={
+                'width': '100%', 'height': '60px', 'lineHeight': '60px',
+                'borderWidth': '1px', 'borderStyle': 'dashed',
+                'borderRadius': '5px', 'textAlign': 'center', 'margin': '10px'
+            })  
         ]),
         dcc.Tab(label='3. Information générale', children=[
-            dcc.Dropdown(id='dropdown-variables', multi=True, placeholder='Sélectionnez les variables'),
-            dash_table.DataTable(id='table-info-client')  
+            dcc.Dropdown(id='dropdown-variables', multi=True, placeholder='Sélectionnez les variables'),  # Retirer style pour la taille de police
+            html.Div(id='table-container', style={
+                'width': '100%', 'height': '60px', 'lineHeight': '60px',
+                'borderWidth': '1px', 'borderStyle': 'dashed',
+                'borderRadius': '5px', 'textAlign': 'center', 'margin': '10px'
+            }),  
+            dash_table.DataTable(id='table-info-client')  # Retirer style pour la taille de police
         ]),
         dcc.Tab(label='4. Features Importances', children=[
             dcc.Graph(id='global-feature-importance'),
@@ -44,13 +55,13 @@ app.layout = html.Div([
             html.Div(id='top-features')
         ]),
         dcc.Tab(label='5. Comparaison clients', children=[
-            dcc.Dropdown(id='dropdown-clients-comparison', multi=True, placeholder='Sélectionnez plusieurs clients'),
-            dcc.Dropdown(id='dropdown-variables-comparison', multi=True, placeholder='Sélectionnez des variables'),
+            dcc.Dropdown(id='dropdown-clients-comparison', multi=True, placeholder='Sélectionnez plusieurs clients'),  # Retirer style pour la taille de police
+            dcc.Dropdown(id='dropdown-variables-comparison', multi=True, placeholder='Sélectionnez des variables'),  # Retirer style pour la taille de police
             dcc.Graph(id='histogram-comparison')
         ]),
         dcc.Tab(label='6. Analyse bivariée', children=[
-            dcc.Dropdown(id='dropdown-x', placeholder='Sélectionnez la variable X'),
-            dcc.Dropdown(id='dropdown-y', placeholder='Sélectionnez la variable Y'),
+            dcc.Dropdown(id='dropdown-x', placeholder='Sélectionnez la variable X'),  # Retirer style pour la taille de police
+            dcc.Dropdown(id='dropdown-y', placeholder='Sélectionnez la variable Y'),  # Retirer style pour la taille de police
             dcc.Graph(id='bivariate-analysis')
         ])
     ])
@@ -77,7 +88,7 @@ def parse_contents(contents, filename):
     Output('dropdown-variables-comparison', 'options'),  
     Output('dropdown-x', 'options'),  
     Output('dropdown-y', 'options'),  
-    Output('dropdown-clients-comparison', 'options'),  # Ajout des options pour clients comparaison
+    Output('dropdown-clients-comparison', 'options'),
     Input('upload-data', 'contents'),
     State('upload-data', 'filename')
 )
@@ -102,7 +113,6 @@ def update_output(content, filename):
     
     return f"Fichier chargé avec succès: {filename}", client_options, variable_options, variable_options, variable_options, variable_options, client_options
 
-# Callback pour afficher le score de crédit sous forme de jauge
 @app.callback(
     Output('gauge-score', 'figure'),
     Output('resultat-score', 'children'),
@@ -111,20 +121,25 @@ def update_output(content, filename):
     State('upload-data', 'filename')
 )
 def update_gauge(client_id, content, filename):
+    # Vérifiez si le client_id ou le contenu sont None
     if client_id is None or content is None:
         return {}, "Veuillez sélectionner un client et télécharger des données."
     
     df = parse_contents(content, filename)
+    
+    # Vérifiez si les données du client sont disponibles
     client_data = df[df['SK_ID_CURR'] == client_id]
     
     if client_data.empty:
         return {}, "Client non trouvé dans les données."
     
+    # Filtrer les données du client et obtenir les caractéristiques
     client_data_filtered = client_data.drop(columns=['TARGET', 'SK_ID_CURR'], errors='ignore')
     features = client_data_filtered.to_dict(orient='records')[0]
     
     try:
-        response = requests.post('http://localhost:8000/predict', json=features)
+        # Appel à l'API pour obtenir le score de crédit
+        response = requests.post('http://127.0.0.1:8000/predict', json=features)
         
         if response.status_code != 200:
             return {}, f"Erreur lors de la récupération des données : {response.status_code}"
@@ -139,6 +154,7 @@ def update_gauge(client_id, content, filename):
         # Définir les couleurs en fonction de l'étiquette
         bar_color = "green" if label == "Accepted" else "red"
         
+        # Créer le graphique de jauge
         figure = go.Figure(go.Indicator(
             mode="gauge+number",
             value=prob,
@@ -147,8 +163,8 @@ def update_gauge(client_id, content, filename):
                 'axis': {'range': [0, 1], 'tickwidth': 2},
                 'bar': {'color': bar_color},
                 'steps': [
-                    {'range': [0, 0.53], 'color': 'red', 'name': 'Refusé'},
-                    {'range': [0.53, 1], 'color': 'green', 'name': 'Accepté'}
+                    {'range': [0, 0.53], 'color': 'rgba(255,0,0,0.2)', 'name': 'Refusé'},
+                    {'range': [0.53, 1], 'color': 'rgba(0,255,0,0.2)', 'name': 'Accepté'}
                 ],
                 'threshold': {
                     'line': {'color': "black", 'width': 4}, 
@@ -157,11 +173,24 @@ def update_gauge(client_id, content, filename):
                 }
             }
         ))
+
+        # Créer l'icône à afficher à côté du résultat
+        icon = "✔️" if label == "Accepted" else "❌"
+        icon_color = "green" if label == "Accepted" else "red"
+
+        # Renvoie le graphique et le résultat avec l'icône
+        result = html.Div(children=[
+            html.Span(icon, style={'fontSize': '1.5em', 'color': icon_color, 'marginRight': '10px'}),
+            html.Span(f"Résultat : {label}", style={'fontSize': '1.2em'})
+        ])
+        
         figure.update_layout(title="Jauge du score de crédit, indiquant un score de 0 à 1 pour la probabilité d'acceptation du crédit") 
-        return figure, f"Résultat : {label}"
+        return figure, result
     
     except Exception as e:
         return {}, f"Erreur lors de l'appel à l'API : {str(e)}"
+
+
 
 # Callback pour afficher les informations générales du client
 @app.callback(
@@ -176,13 +205,12 @@ def update_client_info(client_id, variables, content, filename):
         return []
     
     df = parse_contents(content, filename)
-    
     client_data = df[df['SK_ID_CURR'] == client_id]
     
-    if client_data.empty or not variables:
+    if client_data.empty:
         return []
-    
-    return client_data[variables].to_dict('records')
+
+    return client_data[variables].to_dict(orient='records')
 
 # Callback pour afficher les features importances globales et locales
 @app.callback(
@@ -255,7 +283,7 @@ def update_histogram(clients, variables, content, filename):
         x=variables[0],
         color='SK_ID_CURR',
         title="Comparaison des clients",
-        barmode='group'  # Utilisation de 'group' pour séparer les barres  # Optionnel: normaliser par pourcentage si souhaité
+        barmode='group'  # Utilisation de 'group' pour séparer les barres
     )
 
     # Simplification de l'axe des x sans valeurs spécifiques
@@ -266,7 +294,7 @@ def update_histogram(clients, variables, content, filename):
 
     return fig
 
-
+# Callback pour l'analyse bivariée
 # Callback pour l'analyse bivariée
 @app.callback(
     Output('bivariate-analysis', 'figure'),
@@ -302,12 +330,20 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
     fig.add_annotation(
         text="Client sélectionné en rouge",  # Texte de l'annotation
         xref="paper", yref="paper",  # Références du système de coordonnées
-        x=0.5, y=-0.1,  # Position du texte (ajuster y selon vos besoins)
+        x=0.5, y=-0.25,  # Position du texte (ajuster y pour descendre sous le graphique)
         showarrow=False,
-        font=dict(size=12)  # Taille de la police (ajuster selon vos besoins)
+        font=dict(size=18)  # Taille de la police (ajuster selon vos besoins)
     )
     
+    # Ajuster la mise en page pour laisser de l'espace en bas
+    fig.update_layout(
+        height=500,  # Augmentez la hauteur de la figure
+        margin=dict(l=40, r=40, t=40, b=100)  # Ajoute des marges, surtout en bas
+    )
+
     return fig
 
+
+
 if __name__ == '__main__':
-    app.run_server(host='0.0.0.0', port=10000, debug=True)
+    app.run_server(debug=True)
