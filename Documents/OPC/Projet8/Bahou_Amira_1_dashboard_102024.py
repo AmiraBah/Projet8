@@ -140,7 +140,7 @@ def update_gauge(client_id, content, filename):
     
     try:
         # Appel à l'API pour obtenir le score de crédit
-        response = requests.post('https://scoring-api-y5hk.onrender.com', json=features)
+        response = requests.post('https://scoring-api-y5hk.onrender.com/predict', json=features)
         
         if response.status_code != 200:
             return {}, f"Erreur lors de la récupération des données : {response.status_code}"
