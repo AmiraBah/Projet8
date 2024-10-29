@@ -1,6 +1,9 @@
 dash
+dash-table
 plotly
 pandas
+fastapi
+uvicorn
+joblib
+numpy
 requests
-
-
