@@ -7,6 +7,7 @@ import pandas as pd
 import requests
 import io
 import base64
+import os
 
 app = dash.Dash(__name__)
 app.title = "Dashboard Crédit Score"
