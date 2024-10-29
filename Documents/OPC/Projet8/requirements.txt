@@ -429,7 +429,7 @@ sqlparse==0.5.1
 squarify==0.4.4
 srsly==2.4.8
 stack-data @ file:///opt/conda/conda-bld/stack_data_1646927590127/work
-starlette==0.38.6
+starlette==0.40.0
 statsmodels==0.14.2
 streamlit==1.39.0
 sympy @ file:///private/var/folders/sy/f16zz6x50xz3113nwtb9bvq00000gp/T/abs_94zd__m8ro/croot/sympy_1701397645431/work
