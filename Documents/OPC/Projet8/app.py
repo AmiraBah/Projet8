@@ -4,11 +4,14 @@ import joblib
 import pandas as pd
 import logging
 import numpy as np
+import os
+import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 # Configurer le logging
 logging.basicConfig(level=logging.INFO)
 
-# Charger le pipeline 
+# Charger le pipeline
 try:
     pipeline = joblib.load("pipeline.joblib")
     logging.info("Modèle chargé avec succès.")
@@ -18,6 +21,15 @@ except Exception as e:
 
 # Initialiser l'API
 app = FastAPI()
+
+# Ajouter le middleware CORS si nécessaire
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Ajustez ceci selon vos besoins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Définir les noms de caractéristiques attendus
 expected_features = [
@@ -55,7 +67,7 @@ expected_features = [
     "EXT_SOURCE_3"
 ]
 
-# Route pour la racine 
+# Route pour la racine
 @app.get("/")
 def read_root():
     logging.info("Received GET request at /")
@@ -98,7 +110,6 @@ async def predict(features: dict):
     
     return {"probability": prob[0], "class": label}
 
-
 # Route API pour obtenir les importances des caractéristiques
 @app.get("/feature_importances")
 async def get_feature_importances():
@@ -114,3 +125,7 @@ async def get_feature_importances():
     except Exception as e:
         logging.error(f"Erreur lors de la récupération des importances des caractéristiques : {e}")
         raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération des importances : {str(e)}")
+
+# Démarrer le serveur si exécuté directement
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
