@@ -140,7 +140,7 @@ def update_gauge(client_id, content, filename):
     
     try:
         # Appel à l'API pour obtenir le score de crédit
-        response = requests.post('http://127.0.0.1:8000/predict', json=features)
+        response = requests.post('https://scoring-api-y5hk.onrender.com', json=features)
         
         if response.status_code != 200:
             return {}, f"Erreur lors de la récupération des données : {response.status_code}"
@@ -230,7 +230,7 @@ def update_feature_importances(client_id, content, filename):
     
     # Appel API pour récupérer les features importances globales
     try:
-        response = requests.get('http://localhost:8000/feature_importances')
+        response = requests.get('https://scoring-api-y5hk.onrender.com/feature_importances')
         if response.status_code != 200:
             return {}, {}, "Erreur lors de la récupération des importances."
         
