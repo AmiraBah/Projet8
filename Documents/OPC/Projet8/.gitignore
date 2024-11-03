@@ -8,3 +8,6 @@ dashboard_dash_3
 dashboard_dash.py
 dashboard.py
 clients_data.csv
+mlruns
+logs
+results
