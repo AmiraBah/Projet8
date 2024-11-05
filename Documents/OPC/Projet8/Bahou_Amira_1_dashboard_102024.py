@@ -292,6 +292,7 @@ def update_feature_importances(client_id, content, filename):
 
 
 
+
 # Callback pour la comparaison des clients
 @app.callback(
     Output('histogram-comparison', 'figure'),
@@ -305,17 +306,18 @@ def update_comparison(clients, variables, content, filename):
         return {}
     
     df = parse_contents(content, filename)
-    
+
     filtered_df = df[df['SK_ID_CURR'].isin(clients)]
-    
+
     if filtered_df.empty:
         return {}
 
     # Créer un dictionnaire de couleurs pour chaque client
     color_map = {client: px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)] for i, client in enumerate(clients)}
-    
+
     fig = go.Figure()
-    
+
+    # Création d'histogrammes pour chaque client et chaque variable sélectionnée
     for variable in variables:
         for client in clients:
             client_data = filtered_df[filtered_df['SK_ID_CURR'] == client]
@@ -324,24 +326,23 @@ def update_comparison(clients, variables, content, filename):
                 name=f'Client {client}',
                 opacity=0.75,
                 marker=dict(color=color_map[client]),
-                # Suppression de histnorm pour afficher les valeurs brutes
+                xbins=dict(start=client_data[variable].min(), end=client_data[variable].max(), size=(client_data[variable].max() - client_data[variable].min()) / 20)
             ))
-    
+
     # Mettre à jour la mise en page avec un titre personnalisé
     fig.update_layout(
         title='Comparaison des clients pour la variable "{}"'.format(variables[0]),  # Titre personnalisé
-        title_font=dict(size=20, family='Arial, sans-serif', weight='bold'),  # Taille, police et poids
+        title_font=dict(size=20, weight='bold'),  # Taille, police et poids
         xaxis_title='',  # Supprimer le titre de l'axe X
         yaxis_title=variables[0],  # Titre de l'axe Y avec la variable sélectionnée
         yaxis_title_font=dict(size=18),  # Taille de la police de l'axe Y
         xaxis_title_font=dict(size=18),  # Taille de la police de l'axe X
-        barmode='overlay',
+        barmode='group',  # Barres superposées
         title_x=0.5,  # Centrer le titre
         font=dict(size=18)  # Taille de la police des axes
     )
-    
-    return fig
 
+    return fig
 
 
 
@@ -369,10 +370,10 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         df, 
         x=x_var, 
         y=y_var, 
-        color='client intérêt',  # Utiliser la colonne pour la couleur
+        color='client intérêt',  
         title=f"Analyse bivariée entre {x_var} et {y_var}",
-        color_discrete_map={True: 'red', False: 'blue'},  # Choisir les couleurs
-        labels={'client intérêt': ''}  # Enlever l'étiquette de la légende
+        color_discrete_map={True: 'red', False: 'blue'},  
+        labels={'client intérêt': ''}  
     )
     
     # Supprimer la légende
@@ -380,17 +381,17 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
 
     # Ajouter une annotation sous le graphique
     fig.add_annotation(
-        text="Client sélectionné en rouge",  # Texte de l'annotation
-        xref="paper", yref="paper",  # Références du système de coordonnées
-        x=0.5, y=-0.25,  # Position du texte (ajuster y pour descendre sous le graphique)
+        text="Client sélectionné en rouge",  
+        xref="paper", yref="paper",  
+        x=0.5, y=-0.25,  
         showarrow=False,
-        font=dict(size=18)  # Taille de la police (ajuster selon vos besoins)
+        font=dict(size=18)  
     )
     
     # Ajuster la mise en page pour laisser de l'espace en bas
     fig.update_layout(
-        height=500,  # Augmentez la hauteur de la figure
-        margin=dict(l=40, r=40, t=40, b=100)  # Ajoute des marges, surtout en bas
+        height=500,  
+        margin=dict(l=40, r=40, t=40, b=100)  
     )
 
     return fig
