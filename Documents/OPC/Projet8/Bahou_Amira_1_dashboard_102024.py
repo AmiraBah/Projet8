@@ -80,6 +80,11 @@ def parse_contents(contents, filename):
         return None
     return df
 
+
+
+
+
+
 # Callback pour charger et afficher les données
 @app.callback(
     Output('output-data-upload', 'children'),
@@ -158,7 +163,7 @@ def update_gauge(client_id, content, filename):
         figure = go.Figure(go.Indicator(
             mode="gauge+number",
             value=prob,
-            title={'text': "Score crédit", 'font': {'size': 30, 'weight': 'bold', 'color': 'black'}, 'xanchor': 'center', 'x': 0.5},
+            title={'text': "Score crédit", 'font': {'size': 30, 'weight': 'bold', 'color': 'black'}, 'align': 'center'},
             gauge={
                 'axis': {'range': [0, 1], 'tickwidth': 2},
                 'bar': {'color': bar_color},
@@ -194,9 +199,6 @@ def update_gauge(client_id, content, filename):
 
 
 
-
-
-
 # Callback pour afficher les informations générales du client
 @app.callback(
     Output('table-info-client', 'data'),
@@ -216,8 +218,6 @@ def update_client_info(client_id, variables, content, filename):
         return []
 
     return client_data[variables].round(3).to_dict(orient='records')
-
-
 
 
 
@@ -339,6 +339,9 @@ def update_histogram(clients, variables, content, filename):
     return fig
 
 
+
+
+
 # Callback pour l'analyse bivariée
 @app.callback(
     Output('bivariate-analysis', 'figure'),
@@ -364,9 +367,30 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         color='client intérêt',  # Utiliser la colonne pour la couleur
         title=f"Analyse bivariée entre {x_var} et {y_var}",
         color_discrete_map={True: 'red', False: 'blue'},  # Choisir les couleurs
-        labels={'client intérêt': ''}  
-    )
+        labels={
+            x_var: x_var,
+            y_var: y_var,
+            'client intérêt': ''
+            },
+        title_font=dict(
+        size=24,      # Taille du titre
+        color="black",  # Couleur du titre
+        weight="bold"  # Mettre en gras
+    ),
+)
     
+    # Paramètres supplémentaires pour centrer le titre et agrandir les labels des axes
+    fig.update_traces(
+    marker=dict(size=10)  # Ajustez la taille des points si nécessaire
+    )
+    fig.update_xaxes(
+    title_font=dict(size=18, color="black"),  # Taille de l'axe X
+    )
+    fig.update_yaxes(
+    title_font=dict(size=18, color="black")  # Taille de l'axe Y
+    )
+
+
     # Supprimer la légende
     fig.update_layout(showlegend=False)
 
@@ -387,15 +411,8 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         title_x=0.5  # Centrer le titre
     )
 
-    # Ajuster la taille des axes
-    fig.update_xaxes(title_font=dict(size=16))  # Taille du label de l'axe X
-    fig.update_yaxes(title_font=dict(size=16))  # Taille du label de l'axe Y
-    fig.update_layout(
-        xaxis_tickfont=dict(size=16),  # Taille des ticks de l'axe X
-        yaxis_tickfont=dict(size=16)   # Taille des ticks de l'axe Y
-    )
-
     return fig
+
 
 if __name__ == '__main__':
     app.run_server(host='0.0.0.0', port=int(os.environ.get("PORT", 8050)), debug=True)
