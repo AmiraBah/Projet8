@@ -317,17 +317,20 @@ def update_comparison(clients, variables, content, filename):
 
     fig = go.Figure()
 
-    # Création d'histogrammes pour chaque client et chaque variable sélectionnée
+    # Création d'histogrammes pour chaque variable sélectionnée
     for variable in variables:
         for client in clients:
             client_data = filtered_df[filtered_df['SK_ID_CURR'] == client]
-            fig.add_trace(go.Histogram(
-                x=client_data[variable],
-                name=f'Client {client}',
-                opacity=0.75,
-                marker=dict(color=color_map[client]),
-                xbins=dict(start=client_data[variable].min(), end=client_data[variable].max(), size=(client_data[variable].max() - client_data[variable].min()) / 20)
-            ))
+            if not client_data.empty:  # Vérifier que le client a des données
+                fig.add_trace(go.Histogram(
+                    x=client_data[variable],
+                    name=f'Client {client}',
+                    opacity=0.75,
+                    marker=dict(color=color_map[client]),
+                    xbins=dict(start=client_data[variable].min(), 
+                                end=client_data[variable].max(), 
+                                size=(client_data[variable].max() - client_data[variable].min()) / 20)
+                ))
 
     # Mettre à jour la mise en page avec un titre personnalisé
     fig.update_layout(
@@ -337,12 +340,14 @@ def update_comparison(clients, variables, content, filename):
         yaxis_title=variables[0],  # Titre de l'axe Y avec la variable sélectionnée
         yaxis_title_font=dict(size=18),  # Taille de la police de l'axe Y
         xaxis_title_font=dict(size=18),  # Taille de la police de l'axe X
-        barmode='group',  # Barres superposées
+        barmode='group',  # Barres groupées
+        bargap=0.2,  # Ajuster l'espacement entre les barres
         title_x=0.5,  # Centrer le titre
         font=dict(size=18)  # Taille de la police des axes
     )
 
     return fig
+
 
 
 
@@ -370,8 +375,7 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         df, 
         x=x_var, 
         y=y_var, 
-        color='client intérêt',  
-        title=f"Analyse bivariée entre {x_var} et {y_var}",
+        color='client intérêt',
         color_discrete_map={True: 'red', False: 'blue'},  
         labels={'client intérêt': ''}  
     )
@@ -391,8 +395,18 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
     # Ajuster la mise en page pour laisser de l'espace en bas
     fig.update_layout(
         height=500,  
-        margin=dict(l=40, r=40, t=40, b=100)  
+        margin=dict(l=40, r=40, t=40, b=100),
+        title=dict(
+            text=f"Analyse bivariée entre {x_var} et {y_var}",
+            font=dict(size=20, family='Arial', color='black'),  # Titre en gras et taille 20
+            xanchor='center',
+            x=0.5
+        )
     )
+
+    # Augmenter la taille des axes
+    fig.update_xaxes(tickfont=dict(size=14))  # Ajustez la taille selon vos besoins
+    fig.update_yaxes(tickfont=dict(size=14))  # Ajustez la taille selon vos besoins
 
     return fig
 
