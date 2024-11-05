@@ -82,49 +82,45 @@ def parse_contents(contents, filename):
 
 
 
-
-
-
+#_________________________________________________________________________________________________________
 # Callback pour charger et afficher les données
 @app.callback(
     Output('output-data-upload', 'children'),
     Output('dropdown-client', 'options'),
-    Output('dropdown-variables', 'options'),
-    Output('dropdown-variables-comparison', 'options'),
-    Output('dropdown-x', 'options'),
-    Output('dropdown-y', 'options'),
+    Output('dropdown-variables', 'options'),  
+    Output('dropdown-variables-comparison', 'options'),  
+    Output('dropdown-x', 'options'),  
+    Output('dropdown-y', 'options'),  
     Output('dropdown-clients-comparison', 'options'),
-    Output('dropdown-clients-comparison', 'value'),  # Nouvelle sortie pour valeurs par défaut
     Input('upload-data', 'contents'),
-    State('upload-data', 'filename'),
-    Input('dropdown-client', 'value')  # Nouvelle entrée pour capturer la sélection de client
+    State('upload-data', 'filename')
 )
-def update_output(content, filename, selected_client):
+def update_output(content, filename):
     if content is None:
-        return "Veuillez télécharger un fichier", [], [], [], [], [], [], []
+        return "Veuillez télécharger un fichier", [], [], [], [], [], []
     
     df = parse_contents(content, filename)
     
     if df is None:
-        return "Erreur lors du chargement des données.", [], [], [], [], [], [], []
+        return "Erreur lors du chargement des données.", [], [], [], [], [], []
     
+    # Vérification de la colonne SK_ID_CURR
     if 'SK_ID_CURR' not in df.columns:
-        return "Erreur : La colonne 'SK_ID_CURR' n'est pas présente dans les données.", [], [], [], [], [], [], []
+        return "Erreur : La colonne 'SK_ID_CURR' n'est pas présente dans les données.", [], [], [], [], [], []
     
+    # Créer une liste d'options pour le dropdown des clients
     client_options = [{'label': str(client_id), 'value': client_id} for client_id in df['SK_ID_CURR'].unique() if pd.notnull(client_id)]
+    
+    # Créer une liste d'options pour les variables
     variable_options = [{'label': col, 'value': col} for col in df.columns if col not in ['TARGET', 'SK_ID_CURR']]
     
-    # Mise à jour pour inclure le client sélectionné dans la comparaison
-    clients_comparison_value = [selected_client] if selected_client else []
-
-    return f"Fichier chargé avec succès: {filename}", client_options, variable_options, variable_options, variable_options, variable_options, client_options, clients_comparison_value
+    return f"Fichier chargé avec succès: {filename}", client_options, variable_options, variable_options, variable_options, variable_options, client_options
 
 
 
 
-
-
-
+#_________________________________________________________________________________________________________
+# Callback pour le score
 @app.callback(
     Output('gauge-score', 'figure'),
     Output('resultat-score', 'children'),
@@ -206,6 +202,7 @@ def update_gauge(client_id, content, filename):
 
 
 
+#_________________________________________________________________________________________________________
 # Callback pour afficher les informations générales du client
 @app.callback(
     Output('table-info-client', 'data'),
@@ -228,7 +225,7 @@ def update_client_info(client_id, variables, content, filename):
 
 
 
-
+#_________________________________________________________________________________________________________
 # Callback pour afficher les features importances globales et locales
 @app.callback(
     Output('global-feature-importance', 'figure'),
@@ -297,11 +294,8 @@ def update_feature_importances(client_id, content, filename):
 
     
 
-
-
-
-
-# Callback pour la comparaison des clients
+#_________________________________________________________________________________________________________
+# Callback pour comparaison entre clients
 @app.callback(
     Output('histogram-comparison', 'figure'),
     Input('dropdown-clients-comparison', 'value'),
@@ -309,53 +303,58 @@ def update_feature_importances(client_id, content, filename):
     State('upload-data', 'contents'),
     State('upload-data', 'filename')
 )
-def update_comparison(clients, variables, content, filename):
+def update_histogram(clients, variables, content, filename):
     if clients is None or variables is None or content is None:
         return {}
 
     df = parse_contents(content, filename)
-
-    # Vérifiez que le client sélectionné est inclus
-    selected_client = [client_id for client_id in df['SK_ID_CURR'].unique() if client_id == clients[0]]
-    if selected_client and selected_client[0] not in clients:
-        clients.append(selected_client[0])
 
     filtered_df = df[df['SK_ID_CURR'].isin(clients)]
 
     if filtered_df.empty:
         return {}
 
-    color_map = {client: px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)] for i, client in enumerate(clients)}
-
-    fig = go.Figure()
-
-    for variable in variables:
-        for client in clients:
-            client_data = filtered_df[filtered_df['SK_ID_CURR'] == client]
-
-            if not client_data.empty:
-                fig.add_trace(go.Histogram(
-                    x=client_data[variable],
-                    name=f'Client {client}',
-                    opacity=0.75,
-                    marker=dict(color=color_map[client]),
-                    xbins=dict(start=client_data[variable].min(), 
-                                end=client_data[variable].max(), 
-                                size=(client_data[variable].max() - client_data[variable].min()) / 20)
-                ))
-
-    fig.update_layout(
-        title='Comparaison des clients pour la variable "{}"'.format(variables[0]),
-        title_font=dict(size=20, weight='bold'),
-        xaxis_title='',
-        yaxis_title=variables[0],
-        yaxis_title_font=dict(size=18),
-        xaxis_title_font=dict(size=18),
-        barmode='group',
-        bargap=0.2,
-        title_x=0.5,
-        font=dict(size=18)
+    # Création de l'histogramme avec mode de barres 'group'
+    fig = px.histogram(
+        filtered_df,
+        x=variables[0],
+        color='SK_ID_CURR',
+        title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
+        barmode='group',  # Utilisation de 'group' pour séparer les barres
+        pattern_shape='SK_ID_CURR',  # Ajouter des motifs pour chaque catégorie
+        color_discrete_sequence=px.colors.qualitative.Plotly,  # Palette de couleurs
+        pattern_shape_sequence=["x", "/", "\\"],  # Liste des motifs à utiliser
+        opacity=0.75  # Définir la transparence des barres
     )
+
+    # Mise à jour des axes X
+    fig.update_xaxes(
+        title_text=variables[0],
+        showticklabels=False,  # Ne pas afficher les ticks
+        ticks=""               # Ne pas afficher les ticks
+    )
+
+    # Mise à jour de la mise en page pour éviter le chevauchement
+    fig.update_layout(
+        xaxis_title_text=variables[0], 
+        barmode='group',
+        title=dict(
+            text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
+            font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
+            x=0.5,  # Centre le titre
+            xanchor='center'
+        ),
+        legend=dict(
+            font=dict(size=18),  # Augmenter la taille de la légende (par exemple, taille 18)
+            title=dict(font=dict(size=18)),  # Si vous avez un titre de légende, augmenter la taille de sa police
+            orientation="h"  # Si vous souhaitez afficher la légende horizontalement
+        ),
+        margin=dict(l=40, r=40, t=40, b=40)  # Ajuster les marges si nécessaire
+    )
+
+    # Augmenter la taille des axes
+    fig.update_yaxes(title_font=dict(size=18))  # Taille de police de l'axe Y
+    fig.update_xaxes(title_font=dict(size=18))  # Taille de police de l'axe X
 
     return fig
 
@@ -363,12 +362,7 @@ def update_comparison(clients, variables, content, filename):
 
 
 
-
-
-
-
-
-
+#_________________________________________________________________________________________________________
 # Callback pour l'analyse bivariée
 @app.callback(
     Output('bivariate-analysis', 'figure'),
@@ -387,13 +381,18 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
     # Ajouter une colonne pour indiquer si chaque ligne est le client sélectionné
     df['client intérêt'] = df['SK_ID_CURR'] == client_id
     
+    # Définir les symboles en fonction de la catégorie
+    symbol_map = {True: 'circle', False: 'x'}
+    
     fig = px.scatter(
         df, 
         x=x_var, 
         y=y_var, 
         color='client intérêt',
         color_discrete_map={True: 'red', False: 'blue'},  
-        labels={'client intérêt': ''}  
+        labels={'client intérêt': ''},
+        symbol='client intérêt',
+        symbol_map=symbol_map  # Utiliser un mapping de symboles
     )
     
     # Supprimer la légende
@@ -401,7 +400,7 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
 
     # Ajouter une annotation sous le graphique
     fig.add_annotation(
-        text="Client sélectionné en rouge",  
+        text="Client sélectionné en rouge (●), autres clients en bleu (×)",  
         xref="paper", yref="paper",  
         x=0.5, y=-0.25,  
         showarrow=False,
@@ -425,6 +424,9 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
     fig.update_yaxes(tickfont=dict(size=18))  # Ajustez la taille selon vos besoins
 
     return fig
+
+
+
 
 
 if __name__ == '__main__':
