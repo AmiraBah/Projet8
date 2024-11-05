@@ -312,27 +312,28 @@ def update_feature_importances(client_id, content, filename):
 def update_comparison(clients, variables, content, filename):
     if clients is None or variables is None or content is None:
         return {}
-    
+
     df = parse_contents(content, filename)
 
-    # Filtrer les données pour les clients sélectionnés
+    # Vérifiez que le client sélectionné est inclus
+    selected_client = [client_id for client_id in df['SK_ID_CURR'].unique() if client_id == clients[0]]
+    if selected_client and selected_client[0] not in clients:
+        clients.append(selected_client[0])
+
     filtered_df = df[df['SK_ID_CURR'].isin(clients)]
-    
+
     if filtered_df.empty:
         return {}
 
-    # Créer un dictionnaire de couleurs pour chaque client
     color_map = {client: px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)] for i, client in enumerate(clients)}
 
     fig = go.Figure()
 
-    # Création d'histogrammes pour chaque variable sélectionnée
     for variable in variables:
         for client in clients:
             client_data = filtered_df[filtered_df['SK_ID_CURR'] == client]
 
-            if not client_data.empty:  # Vérifier que le client a des données
-                # Ajouter l'histogramme pour le client
+            if not client_data.empty:
                 fig.add_trace(go.Histogram(
                     x=client_data[variable],
                     name=f'Client {client}',
@@ -343,21 +344,21 @@ def update_comparison(clients, variables, content, filename):
                                 size=(client_data[variable].max() - client_data[variable].min()) / 20)
                 ))
 
-    # Mettre à jour la mise en page avec un titre personnalisé
     fig.update_layout(
-        title='Comparaison des clients pour les variables sélectionnées',
+        title='Comparaison des clients pour la variable "{}"'.format(variables[0]),
         title_font=dict(size=20, weight='bold'),
-        yaxis_title='Fréquence',
-        barmode='group',  # Barres groupées
-        bargap=0.2,  # Ajuster l'espacement entre les barres
-        title_x=0.5,  # Centrer le titre
-        font=dict(size=18)  # Taille de la police des axes
+        xaxis_title='',
+        yaxis_title=variables[0],
+        yaxis_title_font=dict(size=18),
+        xaxis_title_font=dict(size=18),
+        barmode='group',
+        bargap=0.2,
+        title_x=0.5,
+        font=dict(size=18)
     )
 
-    # Masquer l'axe des abscisses
-    fig.update_xaxes(visible=False)
-
     return fig
+
 
 
 
