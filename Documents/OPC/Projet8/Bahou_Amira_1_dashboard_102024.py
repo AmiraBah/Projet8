@@ -55,8 +55,8 @@ app.layout = html.Div(style={'fontSize': '22px'},children=[
             html.Div(id='top-features')
         ]),
         dcc.Tab(label='5. Comparaison clients', children=[
-            dcc.Dropdown(id='dropdown-clients-comparison', multi=True, placeholder='Sélectionnez plusieurs clients'),  # Retirer style pour la taille de police
-            dcc.Dropdown(id='dropdown-variables-comparison', multi=True, placeholder='Sélectionnez des variables'),  # Retirer style pour la taille de police
+            dcc.Dropdown(id='dropdown-clients-comparison', multi=True, placeholder='Sélectionnez plusieurs clients'),
+            dcc.Dropdown(id='dropdown-variables-comparison', multi=True, placeholder='Sélectionnez des variables'),
             dcc.Graph(id='histogram-comparison')
         ]),
         dcc.Tab(label='6. Analyse bivariée', children=[
@@ -89,34 +89,34 @@ def parse_contents(contents, filename):
 @app.callback(
     Output('output-data-upload', 'children'),
     Output('dropdown-client', 'options'),
-    Output('dropdown-variables', 'options'),  
-    Output('dropdown-variables-comparison', 'options'),  
-    Output('dropdown-x', 'options'),  
-    Output('dropdown-y', 'options'),  
+    Output('dropdown-variables', 'options'),
+    Output('dropdown-variables-comparison', 'options'),
+    Output('dropdown-x', 'options'),
+    Output('dropdown-y', 'options'),
     Output('dropdown-clients-comparison', 'options'),
+    Output('dropdown-clients-comparison', 'value'),  # Nouvelle sortie pour valeurs par défaut
     Input('upload-data', 'contents'),
-    State('upload-data', 'filename')
+    State('upload-data', 'filename'),
+    Input('dropdown-client', 'value')  # Nouvelle entrée pour capturer la sélection de client
 )
-def update_output(content, filename):
+def update_output(content, filename, selected_client):
     if content is None:
-        return "Veuillez télécharger un fichier", [], [], [], [], [], []
+        return "Veuillez télécharger un fichier", [], [], [], [], [], [], []
     
     df = parse_contents(content, filename)
     
     if df is None:
-        return "Erreur lors du chargement des données.", [], [], [], [], [], []
+        return "Erreur lors du chargement des données.", [], [], [], [], [], [], []
     
-    # Vérification de la colonne SK_ID_CURR
     if 'SK_ID_CURR' not in df.columns:
-        return "Erreur : La colonne 'SK_ID_CURR' n'est pas présente dans les données.", [], [], [], [], [], []
+        return "Erreur : La colonne 'SK_ID_CURR' n'est pas présente dans les données.", [], [], [], [], [], [], []
     
-    # Créer une liste d'options pour le dropdown des clients
     client_options = [{'label': str(client_id), 'value': client_id} for client_id in df['SK_ID_CURR'].unique() if pd.notnull(client_id)]
-    
-    # Créer une liste d'options pour les variables
     variable_options = [{'label': col, 'value': col} for col in df.columns if col not in ['TARGET', 'SK_ID_CURR']]
     
-    return f"Fichier chargé avec succès: {filename}", client_options, variable_options, variable_options, variable_options, variable_options, client_options
+    clients_comparison_value = [selected_client] if selected_client else []
+
+    return f"Fichier chargé avec succès: {filename}", client_options, variable_options, variable_options, variable_options, variable_options, client_options, clients_comparison_value
 
 @app.callback(
     Output('gauge-score', 'figure'),
@@ -279,7 +279,11 @@ def update_feature_importances(client_id, content, filename):
             legend_font=dict(size=14)
         )
 
-        return fig_global, fig_local, f"Top 3 features globales : {', '.join(top_global_features)}<br>Top 3 features locales : {', '.join(top_local_features)}"
+        return (
+    fig_global,
+    fig_local,
+    dcc.Markdown(f"**Top 3 features globales** : {', '.join(top_global_features)}\n\n**Top 3 features locales** : {', '.join(top_local_features)}")
+)
     
     except Exception as e:
         return {}, {}, f"Erreur lors de l'appel à l'API pour les importances des features : {str(e)}"
@@ -287,7 +291,8 @@ def update_feature_importances(client_id, content, filename):
     
 
 
-# Callback pour afficher la comparaison entre les clients
+
+# Callback pour la comparaison des clients
 @app.callback(
     Output('histogram-comparison', 'figure'),
     Input('dropdown-clients-comparison', 'value'),
@@ -295,48 +300,48 @@ def update_feature_importances(client_id, content, filename):
     State('upload-data', 'contents'),
     State('upload-data', 'filename')
 )
-def update_histogram(clients, variables, content, filename):
+def update_comparison(clients, variables, content, filename):
     if clients is None or variables is None or content is None:
         return {}
-
+    
     df = parse_contents(content, filename)
-
+    
     filtered_df = df[df['SK_ID_CURR'].isin(clients)]
-
+    
     if filtered_df.empty:
         return {}
 
-    # Création de l'histogramme avec mode de barres 'group'
-    fig = px.histogram(
-        filtered_df,
-        x=variables[0],
-        color='SK_ID_CURR',
-        title="Comparaison des clients",
-        barmode='group'  # Utilisation de 'group' pour séparer les barres
-    )
-
-    # Simplification de l'axe des x sans valeurs spécifiques
-    fig.update_xaxes(title_text=variables[0], showticklabels=False, ticks="", title_font=dict(size=16))
-
-    # Mise à jour de la mise en page pour éviter le chevauchement
+    # Créer un dictionnaire de couleurs pour chaque client
+    color_map = {client: px.colors.qualitative.Plotly[i % len(px.colors.qualitative.Plotly)] for i, client in enumerate(clients)}
+    
+    fig = go.Figure()
+    
+    for variable in variables:
+        for client in clients:
+            client_data = filtered_df[filtered_df['SK_ID_CURR'] == client]
+            fig.add_trace(go.Histogram(
+                x=client_data[variable],
+                name=f'Client {client}',
+                opacity=0.75,
+                marker=dict(color=color_map[client]),
+                # Suppression de histnorm pour afficher les valeurs brutes
+            ))
+    
+    # Mettre à jour la mise en page avec un titre personnalisé
     fig.update_layout(
-        title=dict(
-            text="Comparaison des clients",
-            font=dict(size=20, color='black', weight='bold'),  # Titre en gras et taille augmentée
-            x=0.5,  # Centre le titre
-            xanchor='center'
-        ),
-        xaxis_title_text=variables[0],
-        barmode='group',
-        legend=dict(
-            font=dict(size=16),  # Taille de la légende
-        ),
-        font=dict(
-            size=16  # Taille des axes
-        )
-    )  
-
+        title='Comparaison des clients pour la variable "{}"'.format(variables[0]),  # Titre personnalisé
+        title_font=dict(size=20, family='Arial, sans-serif', weight='bold'),  # Taille, police et poids
+        xaxis_title='',  # Supprimer le titre de l'axe X
+        yaxis_title=variables[0],  # Titre de l'axe Y avec la variable sélectionnée
+        yaxis_title_font=dict(size=18),  # Taille de la police de l'axe Y
+        xaxis_title_font=dict(size=18),  # Taille de la police de l'axe X
+        barmode='overlay',
+        title_x=0.5,  # Centrer le titre
+        font=dict(size=18)  # Taille de la police des axes
+    )
+    
     return fig
+
 
 
 
@@ -367,30 +372,9 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         color='client intérêt',  # Utiliser la colonne pour la couleur
         title=f"Analyse bivariée entre {x_var} et {y_var}",
         color_discrete_map={True: 'red', False: 'blue'},  # Choisir les couleurs
-        labels={
-            x_var: x_var,
-            y_var: y_var,
-            'client intérêt': ''
-            },
-        title_font=dict(
-        size=24,      # Taille du titre
-        color="black",  # Couleur du titre
-        weight="bold"  # Mettre en gras
-    ),
-)
+        labels={'client intérêt': ''}  # Enlever l'étiquette de la légende
+    )
     
-    # Paramètres supplémentaires pour centrer le titre et agrandir les labels des axes
-    fig.update_traces(
-    marker=dict(size=10)  # Ajustez la taille des points si nécessaire
-    )
-    fig.update_xaxes(
-    title_font=dict(size=18, color="black"),  # Taille de l'axe X
-    )
-    fig.update_yaxes(
-    title_font=dict(size=18, color="black")  # Taille de l'axe Y
-    )
-
-
     # Supprimer la légende
     fig.update_layout(showlegend=False)
 
@@ -400,15 +384,13 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         xref="paper", yref="paper",  # Références du système de coordonnées
         x=0.5, y=-0.25,  # Position du texte (ajuster y pour descendre sous le graphique)
         showarrow=False,
-        font=dict(size=20)  
+        font=dict(size=18)  # Taille de la police (ajuster selon vos besoins)
     )
     
-     # Ajuster la mise en page pour laisser de l'espace en bas
+    # Ajuster la mise en page pour laisser de l'espace en bas
     fig.update_layout(
         height=500,  # Augmentez la hauteur de la figure
-        margin=dict(l=40, r=40, t=40, b=100),  # Ajoute des marges, surtout en bas
-        title_font=dict(size=20, color='black', bold=True),  # Titre centré, en gras et taille 24
-        title_x=0.5  # Centrer le titre
+        margin=dict(l=40, r=40, t=40, b=100)  # Ajoute des marges, surtout en bas
     )
 
     return fig
