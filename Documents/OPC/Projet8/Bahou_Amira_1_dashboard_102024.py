@@ -114,11 +114,16 @@ def update_output(content, filename, selected_client):
     client_options = [{'label': str(client_id), 'value': client_id} for client_id in df['SK_ID_CURR'].unique() if pd.notnull(client_id)]
     variable_options = [{'label': col, 'value': col} for col in df.columns if col not in ['TARGET', 'SK_ID_CURR']]
     
+    # Mise à jour pour inclure le client sélectionné dans la comparaison
     clients_comparison_value = [selected_client] if selected_client else []
-    client_options = [{'label': str(client_id), 'value': client_id} for client_id in df['SK_ID_CURR'].unique() if pd.notnull(client_id)]
-
 
     return f"Fichier chargé avec succès: {filename}", client_options, variable_options, variable_options, variable_options, variable_options, client_options, clients_comparison_value
+
+
+
+
+
+
 
 @app.callback(
     Output('gauge-score', 'figure'),
@@ -295,6 +300,7 @@ def update_feature_importances(client_id, content, filename):
 
 
 
+
 # Callback pour la comparaison des clients
 @app.callback(
     Output('histogram-comparison', 'figure'),
@@ -304,14 +310,10 @@ def update_feature_importances(client_id, content, filename):
     State('upload-data', 'filename')
 )
 def update_comparison(clients, variables, content, filename):
-    if variables is None or content is None:
+    if clients is None or variables is None or content is None:
         return {}
     
     df = parse_contents(content, filename)
-
-    # Si aucun client n'est sélectionné, utiliser le client sélectionné dans l'autre dropdown
-    if clients is None or len(clients) == 0:
-        clients = [selected_client]  # Assurez-vous que selected_client est défini dans votre fonction
 
     # Filtrer les données pour les clients sélectionnés
     filtered_df = df[df['SK_ID_CURR'].isin(clients)]
@@ -328,7 +330,9 @@ def update_comparison(clients, variables, content, filename):
     for variable in variables:
         for client in clients:
             client_data = filtered_df[filtered_df['SK_ID_CURR'] == client]
+
             if not client_data.empty:  # Vérifier que le client a des données
+                # Ajouter l'histogramme pour le client
                 fig.add_trace(go.Histogram(
                     x=client_data[variable],
                     name=f'Client {client}',
@@ -341,19 +345,21 @@ def update_comparison(clients, variables, content, filename):
 
     # Mettre à jour la mise en page avec un titre personnalisé
     fig.update_layout(
-        title='Comparaison des clients pour la variable "{}"'.format(variables[0]),
+        title='Comparaison des clients pour les variables sélectionnées',
         title_font=dict(size=20, weight='bold'),
-        xaxis_title='',
-        yaxis_title=variables[0],
-        yaxis_title_font=dict(size=18),
-        xaxis_title_font=dict(size=18),
-        barmode='group',
-        bargap=0.2,
-        title_x=0.5,
-        font=dict(size=18)
+        yaxis_title='Fréquence',
+        barmode='group',  # Barres groupées
+        bargap=0.2,  # Ajuster l'espacement entre les barres
+        title_x=0.5,  # Centrer le titre
+        font=dict(size=18)  # Taille de la police des axes
     )
 
+    # Masquer l'axe des abscisses
+    fig.update_xaxes(visible=False)
+
     return fig
+
+
 
 
 
