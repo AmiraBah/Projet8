@@ -426,7 +426,7 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
     fig.update_yaxes(title_text=y_var, title_font=dict(size=18), tickfont=dict(size=16))  # Ajustez les tailles selon vos besoins
 
     # Augmenter la taille des marqueurs dans le graphique
-    fig.update_traces(marker=dict(size=12))  # Ajustez la taille des marqueurs ici
+    fig.update_traces(marker=dict(size=10))  # Ajustez la taille des marqueurs ici
 
     return fig
 
