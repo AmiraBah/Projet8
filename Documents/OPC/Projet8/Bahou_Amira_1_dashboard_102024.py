@@ -393,8 +393,6 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         labels={'client intérêt': ''},
         symbol='client intérêt',
         symbol_map=symbol_map,  # Utiliser un mapping de symboles
-        size_max=20,  # Ajustez la taille maximale des marqueurs ici si nécessaire
-        title=dict(text=f"Analyse bivariée entre {x_var} et {y_var}")  # Déplacez le titre ici
     )
     
     # Supprimer la légende
@@ -415,7 +413,7 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         margin=dict(l=40, r=40, t=40, b=100),
     )
 
-    # Ajouter le titre avec un style personnalisé
+    # Ajouter le titre du graphique
     fig.update_layout(title=dict(
         text=f"Analyse bivariée entre {x_var} et {y_var}",
         font=dict(size=20, color='black', weight='bold'),  # Titre en gras et taille 20
@@ -423,14 +421,15 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         x=0.5
     ))
 
-    # Augmenter la taille des axes
-    fig.update_xaxes(title=dict(text=x_var, font=dict(size=18)), tickfont=dict(size=16))  # Ajustez la taille selon vos besoins
-    fig.update_yaxes(title=dict(text=y_var, font=dict(size=18)), tickfont=dict(size=16))  # Ajustez la taille selon vos besoins
+    # Augmenter la taille des titres des axes
+    fig.update_xaxes(title_text=x_var, title_font=dict(size=18), tickfont=dict(size=16))  # Ajustez les tailles selon vos besoins
+    fig.update_yaxes(title_text=y_var, title_font=dict(size=18), tickfont=dict(size=16))  # Ajustez les tailles selon vos besoins
 
     # Augmenter la taille des marqueurs dans le graphique
-    fig.update_traces(marker=dict(size=13))  # Ajustez la taille des marqueurs ici
+    fig.update_traces(marker=dict(size=12))  # Ajustez la taille des marqueurs ici
 
     return fig
+
 
 
 
