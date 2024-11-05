@@ -115,6 +115,8 @@ def update_output(content, filename, selected_client):
     variable_options = [{'label': col, 'value': col} for col in df.columns if col not in ['TARGET', 'SK_ID_CURR']]
     
     clients_comparison_value = [selected_client] if selected_client else []
+    client_options = [{'label': str(client_id), 'value': client_id} for client_id in df['SK_ID_CURR'].unique() if pd.notnull(client_id)]
+
 
     return f"Fichier chargé avec succès: {filename}", client_options, variable_options, variable_options, variable_options, variable_options, client_options, clients_comparison_value
 
@@ -302,13 +304,18 @@ def update_feature_importances(client_id, content, filename):
     State('upload-data', 'filename')
 )
 def update_comparison(clients, variables, content, filename):
-    if clients is None or variables is None or content is None:
+    if variables is None or content is None:
         return {}
     
     df = parse_contents(content, filename)
 
-    filtered_df = df[df['SK_ID_CURR'].isin(clients)]
+    # Si aucun client n'est sélectionné, utiliser le client sélectionné dans l'autre dropdown
+    if clients is None or len(clients) == 0:
+        clients = [selected_client]  # Assurez-vous que selected_client est défini dans votre fonction
 
+    # Filtrer les données pour les clients sélectionnés
+    filtered_df = df[df['SK_ID_CURR'].isin(clients)]
+    
     if filtered_df.empty:
         return {}
 
@@ -334,19 +341,21 @@ def update_comparison(clients, variables, content, filename):
 
     # Mettre à jour la mise en page avec un titre personnalisé
     fig.update_layout(
-        title='Comparaison des clients pour la variable "{}"'.format(variables[0]),  # Titre personnalisé
-        title_font=dict(size=20, weight='bold'),  # Taille, police et poids
-        xaxis_title='',  # Supprimer le titre de l'axe X
-        yaxis_title=variables[0],  # Titre de l'axe Y avec la variable sélectionnée
-        yaxis_title_font=dict(size=18),  # Taille de la police de l'axe Y
-        xaxis_title_font=dict(size=18),  # Taille de la police de l'axe X
-        barmode='group',  # Barres groupées
-        bargap=0.2,  # Ajuster l'espacement entre les barres
-        title_x=0.5,  # Centrer le titre
-        font=dict(size=18)  # Taille de la police des axes
+        title='Comparaison des clients pour la variable "{}"'.format(variables[0]),
+        title_font=dict(size=20, weight='bold'),
+        xaxis_title='',
+        yaxis_title=variables[0],
+        yaxis_title_font=dict(size=18),
+        xaxis_title_font=dict(size=18),
+        barmode='group',
+        bargap=0.2,
+        title_x=0.5,
+        font=dict(size=18)
     )
 
     return fig
+
+
 
 
 
@@ -398,15 +407,15 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         margin=dict(l=40, r=40, t=40, b=100),
         title=dict(
             text=f"Analyse bivariée entre {x_var} et {y_var}",
-            font=dict(size=20, family='Arial', color='black'),  # Titre en gras et taille 20
+            font=dict(size=20, color='black', weight='bold'),  # Titre en gras et taille 20
             xanchor='center',
             x=0.5
         )
     )
 
     # Augmenter la taille des axes
-    fig.update_xaxes(tickfont=dict(size=14))  # Ajustez la taille selon vos besoins
-    fig.update_yaxes(tickfont=dict(size=14))  # Ajustez la taille selon vos besoins
+    fig.update_xaxes(tickfont=dict(size=18))  # Ajustez la taille selon vos besoins
+    fig.update_yaxes(tickfont=dict(size=18))  # Ajustez la taille selon vos besoins
 
     return fig
 
