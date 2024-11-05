@@ -10,11 +10,10 @@ import base64
 import os
 
 app = dash.Dash(__name__)
-app.title = "Dashboard Crédit Score"
+app.title = "Dashboard Crédit score"
 
-# Layout du tableau de bord avec des onglets et une taille de police par défaut
 
-app.layout = html.Div(style={'fontSize': '20px'},children=[  # Enlever la taille de police par défaut
+app.layout = html.Div(style={'fontSize': '22px'},children=[  
     dcc.Tabs([
         dcc.Tab(label='1. Chargement des données', children=[
             dcc.Upload(
@@ -33,7 +32,7 @@ app.layout = html.Div(style={'fontSize': '20px'},children=[  # Enlever la taille
             dcc.Dropdown(id='dropdown-client', placeholder='Sélectionnez un client'),  # Retirer style pour la taille de police
             # Enlever le label pour la taille de police
         ]),
-        dcc.Tab(label='2. Crédit Score', children=[
+        dcc.Tab(label='2. Crédit score', children=[
             dcc.Graph(id='gauge-score'),
             html.Div(id='resultat-score', style={
                 'width': '100%', 'height': '60px', 'lineHeight': '60px',
@@ -50,7 +49,7 @@ app.layout = html.Div(style={'fontSize': '20px'},children=[  # Enlever la taille
             }),  
             dash_table.DataTable(id='table-info-client')  # Retirer style pour la taille de police
         ]),
-        dcc.Tab(label='4. Features Importances', children=[
+        dcc.Tab(label='4. Features importances', children=[
             dcc.Graph(id='global-feature-importance'),
             dcc.Graph(id='local-feature-importance'),
             html.Div(id='top-features')
@@ -153,19 +152,19 @@ def update_gauge(client_id, content, filename):
             return {}, "Erreur: Données manquantes dans la réponse de l'API."
         
         # Définir les couleurs en fonction de l'étiquette
-        bar_color = "green" if label == "Accepted" else "red"
+        bar_color = "#228B22" if label == "Accepted" else "#B22222"
         
         # Créer le graphique de jauge
         figure = go.Figure(go.Indicator(
             mode="gauge+number",
             value=prob,
-            title={'text': "Score Crédit", 'font': {'size': 20}},
+            title={'text': "Score crédit", 'font': {'size': 30, 'weight': 'bold', 'color': 'black'}, 'xanchor': 'center', 'x': 0.5},
             gauge={
                 'axis': {'range': [0, 1], 'tickwidth': 2},
                 'bar': {'color': bar_color},
                 'steps': [
-                    {'range': [0, 0.53], 'color': 'rgba(255,0,0,0.2)', 'name': 'Refusé'},
-                    {'range': [0.53, 1], 'color': 'rgba(0,255,0,0.2)', 'name': 'Accepté'}
+                    {'range': [0, 0.53], 'color': 'rgba(178,34,34,0.2)', 'name': 'Refusé'},
+                    {'range': [0.53, 1], 'color': 'rgba(34,139,34,0.2)', 'name': 'Accepté'}
                 ],
                 'threshold': {
                     'line': {'color': "black", 'width': 4}, 
@@ -175,21 +174,26 @@ def update_gauge(client_id, content, filename):
             }
         ))
 
+        # Ajouter une annotation pour indiquer la valeur seuil de 0.53
+        figure.add_annotation(
+            x=0.5,  # Position en X autour du centre de la jauge
+            y=0.65,  # Position en Y pour situer le texte sous la jauge
+            text="Seuil : 0.53",  # Texte de l'annotation
+            showarrow=False,
+            font=dict(size=14, color="black")
+        )
+
         # Créer l'icône à afficher à côté du résultat
         icon = "✔️" if label == "Accepted" else "❌"
-        icon_color = "green" if label == "Accepted" else "red"
-
-        # Renvoie le graphique et le résultat avec l'icône
-        result = html.Div(children=[
-            html.Span(icon, style={'fontSize': '1.5em', 'color': icon_color, 'marginRight': '10px'}),
-            html.Span(f"Résultat : {label}", style={'fontSize': '1.2em'})
-        ])
         
-        figure.update_layout(title="Jauge du score de crédit, indiquant un score de 0 à 1 pour la probabilité d'acceptation du crédit") 
-        return figure, result
+        return figure, f"{icon} {label.capitalize()} avec une probabilité de {prob:.2%}"
     
     except Exception as e:
-        return {}, f"Erreur lors de l'appel à l'API : {str(e)}"
+        return {}, f"Erreur lors de la récupération des données : {str(e)}"
+
+
+
+
 
 
 
@@ -211,7 +215,12 @@ def update_client_info(client_id, variables, content, filename):
     if client_data.empty:
         return []
 
-    return client_data[variables].to_dict(orient='records')
+    return client_data[variables].round(3).to_dict(orient='records')
+
+
+
+
+
 
 # Callback pour afficher les features importances globales et locales
 @app.callback(
@@ -244,6 +253,14 @@ def update_feature_importances(client_id, content, filename):
                             labels={'index': 'Features', 'value': 'Importance'},
                             color='value', color_continuous_scale=px.colors.sequential.Viridis)
 
+        # Personnaliser le graphique global
+        fig_global.update_layout(
+            title={'text': "Importance des features globales", 'font': {'size': 24, 'weight': 'bold'}, 'x': 0.5},
+            xaxis_title_font=dict(size=16),
+            yaxis_title_font=dict(size=16),
+            legend_font=dict(size=14)
+        )
+
         # Appel API pour récupérer les importances locales
         client_data = df[df['SK_ID_CURR'] == client_id].drop(columns=['TARGET', 'SK_ID_CURR'], errors='ignore')
         local_importance_series = pd.Series(client_data.values[0], index=client_data.columns)
@@ -253,11 +270,22 @@ def update_feature_importances(client_id, content, filename):
                            title=f"Importance des features locales",
                            labels={'index': 'Features', 'value': 'Valeurs'},
                            color='value', color_continuous_scale=px.colors.sequential.Viridis)
-        
-        return fig_global, fig_local, f"Top 3 features globales : {', '.join(top_global_features)}\nTop 3 features locales : {', '.join(top_local_features)}"
+
+        # Personnaliser le graphique local
+        fig_local.update_layout(
+            title={'text': "Importance des features locales", 'font': {'size': 24, 'weight': 'bold'}, 'x': 0.5},
+            xaxis_title_font=dict(size=16),
+            yaxis_title_font=dict(size=16),
+            legend_font=dict(size=14)
+        )
+
+        return fig_global, fig_local, f"Top 3 features globales : {', '.join(top_global_features)}<br>Top 3 features locales : {', '.join(top_local_features)}"
     
     except Exception as e:
         return {}, {}, f"Erreur lors de l'appel à l'API pour les importances des features : {str(e)}"
+
+    
+
 
 # Callback pour afficher la comparaison entre les clients
 @app.callback(
@@ -291,17 +319,32 @@ def update_histogram(clients, variables, content, filename):
     fig.update_xaxes(title_text=variables[0], showticklabels=False, ticks="", title_font=dict(size=16))
 
     # Mise à jour de la mise en page pour éviter le chevauchement
-    fig.update_layout(xaxis_title_text=variables[0], barmode='group')  # Assurez-vous que le mode de barre est correct
+    fig.update_layout(
+        title=dict(
+            text="Comparaison des clients",
+            font=dict(size=20, color='black', weight='bold'),  # Titre en gras et taille augmentée
+            x=0.5,  # Centre le titre
+            xanchor='center'
+        ),
+        xaxis_title_text=variables[0],
+        barmode='group',
+        legend=dict(
+            font=dict(size=16),  # Taille de la légende
+        ),
+        font=dict(
+            size=16  # Taille des axes
+        )
+    )  
 
     return fig
 
-# Callback pour l'analyse bivariée
+
 # Callback pour l'analyse bivariée
 @app.callback(
     Output('bivariate-analysis', 'figure'),
     Input('dropdown-x', 'value'),
     Input('dropdown-y', 'value'),
-    Input('dropdown-client', 'value'),  # Ajout du client sélectionné
+    Input('dropdown-client', 'value'),  
     State('upload-data', 'contents'),
     State('upload-data', 'filename')
 )
@@ -321,7 +364,7 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         color='client intérêt',  # Utiliser la colonne pour la couleur
         title=f"Analyse bivariée entre {x_var} et {y_var}",
         color_discrete_map={True: 'red', False: 'blue'},  # Choisir les couleurs
-        labels={'client intérêt': ''}  # Enlever l'étiquette de la légende
+        labels={'client intérêt': ''}  
     )
     
     # Supprimer la légende
@@ -333,13 +376,23 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         xref="paper", yref="paper",  # Références du système de coordonnées
         x=0.5, y=-0.25,  # Position du texte (ajuster y pour descendre sous le graphique)
         showarrow=False,
-        font=dict(size=18)  # Taille de la police (ajuster selon vos besoins)
+        font=dict(size=20)  
     )
     
-    # Ajuster la mise en page pour laisser de l'espace en bas
+     # Ajuster la mise en page pour laisser de l'espace en bas
     fig.update_layout(
         height=500,  # Augmentez la hauteur de la figure
-        margin=dict(l=40, r=40, t=40, b=100)  # Ajoute des marges, surtout en bas
+        margin=dict(l=40, r=40, t=40, b=100),  # Ajoute des marges, surtout en bas
+        title_font=dict(size=20, color='black', bold=True),  # Titre centré, en gras et taille 24
+        title_x=0.5  # Centrer le titre
+    )
+
+    # Ajuster la taille des axes
+    fig.update_xaxes(title_font=dict(size=16))  # Taille du label de l'axe X
+    fig.update_yaxes(title_font=dict(size=16))  # Taille du label de l'axe Y
+    fig.update_layout(
+        xaxis_tickfont=dict(size=16),  # Taille des ticks de l'axe X
+        yaxis_tickfont=dict(size=16)   # Taille des ticks de l'axe Y
     )
 
     return fig
