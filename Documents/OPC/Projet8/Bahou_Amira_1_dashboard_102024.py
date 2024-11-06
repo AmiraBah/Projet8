@@ -335,7 +335,7 @@ def update_histogram(clients, variables, content, filename):
         y=variables[0],  # Axe Y : variable choisie à comparer
         title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
         barmode='group',  # Utilisation de 'group' pour séparer les barres
-        pattern_shape='SK_ID_CURR',  # Ajouter des motifs pour chaque client
+        #pattern_shape='SK_ID_CURR',  # Ajouter des motifs pour chaque client
         opacity=0.75,  # Définir la transparence des barres
         color_discrete_map=color_map,  # Appliquer le code couleur par client
         pattern_shape_map=pattern_map,  # Appliquer le code motif par client
