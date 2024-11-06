@@ -329,13 +329,13 @@ def update_histogram(clients, variables, content, filename):
         opacity=0.75  # Définir la transparence des barres
     )
 
-    # Mise à jour des axes X et Y
+    # Masquer l'axe des X
     fig.update_xaxes(
-        title_text=variables[0],
-        showticklabels=True,  # Afficher les ticks sur l'axe X
-        ticks="outside"      # Ajouter des ticks sur l'extérieur
+        showticklabels=False,  # Masquer les ticks de l'axe X
+        ticks=""               # Masquer les ticks
     )
 
+    # Mise à jour des axes Y
     fig.update_yaxes(
         title_text="Valeurs de la variable",  # Nouveau titre pour l'axe Y
         title_font=dict(size=18)  # Taille de police pour l'axe Y
@@ -352,16 +352,17 @@ def update_histogram(clients, variables, content, filename):
         legend=dict(
             font=dict(size=18),  # Augmenter la taille de la légende
             title=dict(font=dict(size=18)),  # Si vous avez un titre de légende, augmenter la taille de sa police
-            orientation="h"  # Si vous souhaitez afficher la légende horizontalement
+            orientation="h",  # Si vous souhaitez afficher la légende horizontalement
+            traceorder="normal"  # S'assurer que l'ordre des éléments dans la légende est correct
         ),
         margin=dict(l=40, r=40, t=40, b=40)  # Ajuster les marges si nécessaire
     )
 
     # Augmenter la taille des axes
     fig.update_yaxes(title_font=dict(size=18))  # Taille de police de l'axe Y
-    fig.update_xaxes(title_font=dict(size=18))  # Taille de police de l'axe X
 
     return fig
+
 
 
 
