@@ -1,3 +1,4 @@
+#Importation des librairies nécessaires
 import dash
 from dash import dcc, html, Input, Output, State
 from dash import dash_table
@@ -28,9 +29,8 @@ app.layout = html.Div(style={'fontSize': '22px'},children=[
                     'borderRadius': '5px', 'textAlign': 'center', 'margin': '10px'
                 },
             ),
-            html.Div(id='output-data-upload'),  # Retirer style pour la taille de police
-            dcc.Dropdown(id='dropdown-client', placeholder='Sélectionnez un client'),  # Retirer style pour la taille de police
-            # Enlever le label pour la taille de police
+            html.Div(id='output-data-upload'),  
+            dcc.Dropdown(id='dropdown-client', placeholder='Sélectionnez un client'),  
         ]),
         dcc.Tab(label='2. Crédit score', children=[
             dcc.Graph(id='gauge-score'),
@@ -41,13 +41,13 @@ app.layout = html.Div(style={'fontSize': '22px'},children=[
             })  
         ]),
         dcc.Tab(label='3. Information générale', children=[
-            dcc.Dropdown(id='dropdown-variables', multi=True, placeholder='Sélectionnez les variables'),  # Retirer style pour la taille de police
+            dcc.Dropdown(id='dropdown-variables', multi=True, placeholder='Sélectionnez les variables'),  
             html.Div(id='table-container', style={
                 'width': '100%', 'height': '60px', 'lineHeight': '60px',
                 'borderWidth': '1px', 'borderStyle': 'dashed',
                 'borderRadius': '5px', 'textAlign': 'center', 'margin': '10px'
             }),  
-            dash_table.DataTable(id='table-info-client')  # Retirer style pour la taille de police
+            dash_table.DataTable(id='table-info-client')  
         ]),
         dcc.Tab(label='4. Features importances', children=[
             dcc.Graph(id='global-feature-importance'),
@@ -60,14 +60,14 @@ app.layout = html.Div(style={'fontSize': '22px'},children=[
             dcc.Graph(id='histogram-comparison')
         ]),
         dcc.Tab(label='6. Analyse bivariée', children=[
-            dcc.Dropdown(id='dropdown-x', placeholder='Sélectionnez la variable X'),  # Retirer style pour la taille de police
-            dcc.Dropdown(id='dropdown-y', placeholder='Sélectionnez la variable Y'),  # Retirer style pour la taille de police
+            dcc.Dropdown(id='dropdown-x', placeholder='Sélectionnez la variable X'),  
+            dcc.Dropdown(id='dropdown-y', placeholder='Sélectionnez la variable Y'),  
             dcc.Graph(id='bivariate-analysis')
         ])
     ])
 ])
 
-# Parse CSV file content
+
 def parse_contents(contents, filename):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
@@ -184,9 +184,9 @@ def update_gauge(client_id, content, filename):
 
         # Ajouter une annotation pour indiquer la valeur seuil de 0.53
         figure.add_annotation(
-            x=0.5,  # Position en X autour du centre de la jauge
-            y=0.65,  # Position en Y pour situer le texte sous la jauge
-            text="Seuil : 0.53",  # Texte de l'annotation
+            x=0.5,  
+            y=0.65,  
+            text="Seuil : 0.53",  
             showarrow=False,
             font=dict(size=14, color="black")
         )
@@ -305,7 +305,7 @@ def update_feature_importances(client_id, content, filename):
 )
 def update_histogram(clients, variables, content, filename):
     if clients is None or variables is None or content is None or len(variables) == 0:
-        return {}  # Retourne un graphique vide si l'une des valeurs est absente ou que 'variables' est vide
+        return {}  
 
     # Parser les données
     df = parse_contents(content, filename)
@@ -315,21 +315,18 @@ def update_histogram(clients, variables, content, filename):
 
     if filtered_df.empty:
         return {}
+    
 
-    # Création du graphique avec un histogramme de type 'bar'
-    import plotly.express as px
-
-# Création du graphique avec un histogramme de type 'bar'
-# Utilisation de px.histogram pour créer un histogramme
+# Création du graphique 
     fig = px.histogram(
     filtered_df,
-    x='SK_ID_CURR',  # Axe X : identifiant des clients
-    y=variables[0],  # Axe Y : variable choisie à comparer
+    x='SK_ID_CURR',  
+    y=variables[0],  
     title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-    histfunc='sum',  # Utilisation de la somme pour les barres
-    color='SK_ID_CURR',  # Colorer les barres selon l'ID client
-    pattern_shape='SK_ID_CURR',  # Motifs distincts selon l'ID client
-    opacity=0.75  # Définir la transparence des barres
+    histfunc='sum',  
+    color='SK_ID_CURR', 
+    pattern_shape='SK_ID_CURR',  
+    opacity=0.75  
 )
 
 # Mise à jour de la mise en page
@@ -340,31 +337,29 @@ def update_histogram(clients, variables, content, filename):
         x=0.5,
         xanchor='center'
     ),
-    showlegend=False,  # Désactive la légende
+    showlegend=False,  
     xaxis=dict(
-        title="SK_ID_CURR",  # Titre de l'axe des X
-        type='category',  # Définit l'axe X comme catégorique
-        categoryorder='array',  # Utilisation de l'ordre des catégories
-        categoryarray=filtered_df['SK_ID_CURR'].tolist(),  # Assure l'ordre exact des ID
-        tickvals=filtered_df['SK_ID_CURR'].tolist(),  # Valeurs des ticks
-        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Affiche les textes sous chaque barre
-        tickfont=dict(size=16),  # Taille de la police des labels
-        title_font=dict(size=18),  # Taille du titre de l'axe X
-        tickangle=0,  # Garde les labels droits
-        automargin=True  # Ajuste les marges automatiquement
+        title="SK_ID_CURR",  
+        type='category',  
+        categoryorder='array',  
+        categoryarray=filtered_df['SK_ID_CURR'].tolist(),  
+        tickvals=filtered_df['SK_ID_CURR'].tolist(),  
+        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  
+        tickfont=dict(size=16),  
+        title_font=dict(size=18),  
+        tickangle=0,  
+        automargin=True  
     ),
     yaxis=dict(
-        title=variables[0],  # Titre de l'axe des Y
-        tickfont=dict(size=16),  # Taille de la police des valeurs de l'axe Y
-        title_font=dict(size=18),  # Taille du titre de l'axe Y
+        title=variables[0],  
+        tickfont=dict(size=18),  
+        title_font=dict(size=18),  
     ),
-    margin=dict(l=40, r=40, t=70, b=100),  # Augmente les marges pour éviter le chevauchement
-    bargap=0.2,  # Espace entre les barres
-    bargroupgap=0.1  # Espace entre les groupes de barres
+    margin=dict(l=40, r=40, t=70, b=100),  
+    bargap=0.2,  
+    bargroupgap=0.1  
 )
-
-
-
+    
     return fig
 
 
@@ -386,10 +381,10 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
     
     df = parse_contents(content, filename)
     
-    # Ajouter une colonne pour indiquer si chaque ligne est le client sélectionné
+   
     df['client intérêt'] = df['SK_ID_CURR'] == client_id
     
-    # Définir les symboles en fonction de la catégorie
+   
     symbol_map = {True: 'circle', False: 'x'}
     
     fig = px.scatter(
@@ -400,10 +395,10 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         color_discrete_map={True: 'red', False: 'blue'},  
         labels={'client intérêt': ''},
         symbol='client intérêt',
-        symbol_map=symbol_map,  # Utiliser un mapping de symboles
+        symbol_map=symbol_map,  
     )
     
-    # Supprimer la légende
+   
     fig.update_layout(showlegend=False)
 
     # Ajouter une annotation sous le graphique
@@ -415,7 +410,7 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
         font=dict(size=18)  
     )
     
-    # Ajuster la mise en page pour laisser de l'espace en bas
+    
     fig.update_layout(
         height=500,  
         margin=dict(l=40, r=40, t=40, b=100),
@@ -424,21 +419,19 @@ def update_bivariate_analysis(x_var, y_var, client_id, content, filename):
     # Ajouter le titre du graphique
     fig.update_layout(title=dict(
         text=f"Analyse bivariée entre {x_var} et {y_var}",
-        font=dict(size=20, color='black', weight='bold'),  # Titre en gras et taille 20
+        font=dict(size=20, color='black', weight='bold'),  
         xanchor='center',
         x=0.5
     ))
 
     # Augmenter la taille des titres des axes
-    fig.update_xaxes(title_text=x_var, title_font=dict(size=18), tickfont=dict(size=16))  # Ajustez les tailles selon vos besoins
-    fig.update_yaxes(title_text=y_var, title_font=dict(size=18), tickfont=dict(size=16))  # Ajustez les tailles selon vos besoins
+    fig.update_xaxes(title_text=x_var, title_font=dict(size=18), tickfont=dict(size=16))  
+    fig.update_yaxes(title_text=y_var, title_font=dict(size=18), tickfont=dict(size=16))  
 
     # Augmenter la taille des marqueurs dans le graphique
-    fig.update_traces(marker=dict(size=10))  # Ajustez la taille des marqueurs ici
+    fig.update_traces(marker=dict(size=10))  
 
     return fig
-
-
 
 
 
