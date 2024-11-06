@@ -307,6 +307,7 @@ def update_histogram(clients, variables, content, filename):
     if clients is None or variables is None or content is None:
         return {}
 
+    # Parser les données
     df = parse_contents(content, filename)
 
     # Filtrer les données pour ne garder que les clients sélectionnés
@@ -318,27 +319,27 @@ def update_histogram(clients, variables, content, filename):
     # Création du graphique avec un histogramme de type 'bar'
     fig = px.bar(
         filtered_df,
-        x=variables[0],  # La variable choisie sera sur l'axe X
-        y=variables[0],  # La même variable sera utilisée pour l'axe Y
+        x='SK_ID_CURR',  # Axe X : identifiant des clients
+        y=variables[0],  # Axe Y : variable choisie à comparer
         color='SK_ID_CURR',  # Pour colorer les barres par client
         title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
         barmode='group',  # Utilisation de 'group' pour séparer les barres
-        pattern_shape='SK_ID_CURR',  # Ajouter des motifs pour chaque catégorie
-        color_discrete_sequence=px.colors.qualitative.Plotly,  # Palette de couleurs
+        pattern_shape='SK_ID_CURR',  # Ajouter des motifs pour chaque client
         pattern_shape_sequence=["x", "/", "\\"],  # Liste des motifs à utiliser
         opacity=0.75  # Définir la transparence des barres
     )
 
     # Masquer l'axe des X
     fig.update_xaxes(
-        showticklabels=False,  # Masquer les ticks de l'axe X
-        ticks=""               # Masquer les ticks
+        showticklabels=True,  # Afficher les ticks de l'axe X pour voir les ID des clients
+        ticks="inside",       # Afficher les ticks
+        tickangle=45          # Incliner les étiquettes si nécessaire
     )
 
     # Mise à jour des axes Y
     fig.update_yaxes(
-        title_text="Valeurs de la variable",  # Nouveau titre pour l'axe Y
-        title_font=dict(size=18)  # Taille de police pour l'axe Y
+        title_text="Valeurs de la variable",  # Titre de l'axe Y
+        title_font=dict(size=18),  # Taille de police de l'axe Y
     )
 
     # Mise à jour de la mise en page pour éviter le chevauchement
@@ -350,18 +351,16 @@ def update_histogram(clients, variables, content, filename):
             xanchor='center'
         ),
         legend=dict(
-            font=dict(size=18),  # Augmenter la taille de la légende
-            title=dict(font=dict(size=18)),  # Si vous avez un titre de légende, augmenter la taille de sa police
-            orientation="h",  # Si vous souhaitez afficher la légende horizontalement
-            traceorder="normal"  # S'assurer que l'ordre des éléments dans la légende est correct
+            font=dict(size=18),  # Taille de la légende
+            title=dict(font=dict(size=18)),  # Titre de la légende
+            orientation="h",  # Affichage horizontal de la légende
+            traceorder="normal"  # L'ordre des éléments de légende est normal
         ),
-        margin=dict(l=40, r=40, t=40, b=40)  # Ajuster les marges si nécessaire
+        margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
     )
 
-    # Augmenter la taille des axes
-    fig.update_yaxes(title_font=dict(size=18))  # Taille de police de l'axe Y
-
     return fig
+
 
 
 
