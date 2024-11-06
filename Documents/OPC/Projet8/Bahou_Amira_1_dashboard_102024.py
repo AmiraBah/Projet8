@@ -320,46 +320,47 @@ def update_histogram(clients, variables, content, filename):
     import plotly.express as px
 
 # Création du graphique avec un histogramme de type 'bar'
-    fig = px.bar(
+# Utilisation de px.histogram pour créer un histogramme
+    fig = px.histogram(
     filtered_df,
     x='SK_ID_CURR',  # Axe X : identifiant des clients
     y=variables[0],  # Axe Y : variable choisie à comparer
     title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-    barmode='group',  # Utilisation de 'group' pour séparer les barres
-    color='SK_ID_CURR',  # Colorer selon l'ID client
+    histfunc='sum',  # Utilisation de la somme pour les barres
+    color='SK_ID_CURR',  # Colorer les barres selon l'ID client
     pattern_shape='SK_ID_CURR',  # Motifs distincts selon l'ID client
     opacity=0.75  # Définir la transparence des barres
 )
 
-# Mise à jour de la mise en page pour centrer les labels sous chaque barre
-    fig.update_layout(
+# Mise à jour de la mise en page
+    fig.update_layout( 
     title=dict(
         text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-        font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
-        x=0.5,  # Centre le titre
+        font=dict(size=20, weight='bold'),
+        x=0.5,
         xanchor='center'
     ),
     showlegend=False,  # Désactive la légende
     xaxis=dict(
         title="SK_ID_CURR",  # Titre de l'axe des X
         type='category',  # Définit l'axe X comme catégorique
-        categoryorder='array',  # Utilise un ordre spécifique pour les catégories
+        categoryorder='array',  # Utilisation de l'ordre des catégories
         categoryarray=filtered_df['SK_ID_CURR'].tolist(),  # Assure l'ordre exact des ID
-        tickvals=filtered_df['SK_ID_CURR'].tolist(),  # Valeurs de chaque tick
-        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Texte de chaque tick
+        tickvals=filtered_df['SK_ID_CURR'].tolist(),  # Valeurs des ticks
+        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Affiche les textes sous chaque barre
         tickfont=dict(size=16),  # Taille de la police des labels
-        title_font=dict(size=18),  # Taille du titre de l'axe
-        tickangle=0,  # Garder les labels droits
-        automargin=True,  # Ajuste les marges automatiquement
-        tickmode='array',  # Assure que les ticks sont définis explicitement
+        title_font=dict(size=18),  # Taille du titre de l'axe X
+        tickangle=0,  # Garde les labels droits
+        automargin=True  # Ajuste les marges automatiquement
     ),
     yaxis=dict(
         title=variables[0],  # Titre de l'axe des Y
         tickfont=dict(size=16),  # Taille de la police des valeurs de l'axe Y
         title_font=dict(size=18),  # Taille du titre de l'axe Y
     ),
-    margin=dict(l=40, r=40, t=70, b=100),  # Augmente la marge inférieure pour les labels inclinés
-    bargap=0.2  # Espace entre les barres
+    margin=dict(l=40, r=40, t=70, b=100),  # Augmente les marges pour éviter le chevauchement
+    bargap=0.2,  # Espace entre les barres
+    bargroupgap=0.1  # Espace entre les groupes de barres
 )
 
 
