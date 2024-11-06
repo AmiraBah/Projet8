@@ -309,16 +309,18 @@ def update_histogram(clients, variables, content, filename):
 
     df = parse_contents(content, filename)
 
+    # Filtrer les données pour ne garder que les clients sélectionnés
     filtered_df = df[df['SK_ID_CURR'].isin(clients)]
 
     if filtered_df.empty:
         return {}
 
-    # Création de l'histogramme avec mode de barres 'group'
-    fig = px.histogram(
+    # Création du graphique avec un histogramme de type 'bar'
+    fig = px.bar(
         filtered_df,
-        x=variables[0],
-        color='SK_ID_CURR',
+        x=variables[0],  # La variable choisie sera sur l'axe X
+        y=variables[0],  # La même variable sera utilisée pour l'axe Y
+        color='SK_ID_CURR',  # Pour colorer les barres par client
         title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
         barmode='group',  # Utilisation de 'group' pour séparer les barres
         pattern_shape='SK_ID_CURR',  # Ajouter des motifs pour chaque catégorie
@@ -327,17 +329,20 @@ def update_histogram(clients, variables, content, filename):
         opacity=0.75  # Définir la transparence des barres
     )
 
-    # Mise à jour des axes X
+    # Mise à jour des axes X et Y
     fig.update_xaxes(
         title_text=variables[0],
-        showticklabels=False,  # Ne pas afficher les ticks
-        ticks=""               # Ne pas afficher les ticks
+        showticklabels=True,  # Afficher les ticks sur l'axe X
+        ticks="outside"      # Ajouter des ticks sur l'extérieur
+    )
+
+    fig.update_yaxes(
+        title_text="Valeurs de la variable",  # Nouveau titre pour l'axe Y
+        title_font=dict(size=18)  # Taille de police pour l'axe Y
     )
 
     # Mise à jour de la mise en page pour éviter le chevauchement
     fig.update_layout(
-        xaxis_title_text=variables[0], 
-        barmode='group',
         title=dict(
             text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
             font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
@@ -345,7 +350,7 @@ def update_histogram(clients, variables, content, filename):
             xanchor='center'
         ),
         legend=dict(
-            font=dict(size=18),  # Augmenter la taille de la légende (par exemple, taille 18)
+            font=dict(size=18),  # Augmenter la taille de la légende
             title=dict(font=dict(size=18)),  # Si vous avez un titre de légende, augmenter la taille de sa police
             orientation="h"  # Si vous souhaitez afficher la légende horizontalement
         ),
@@ -357,6 +362,7 @@ def update_histogram(clients, variables, content, filename):
     fig.update_xaxes(title_font=dict(size=18))  # Taille de police de l'axe X
 
     return fig
+
 
 
 
