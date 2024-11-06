@@ -316,24 +316,36 @@ def update_histogram(clients, variables, content, filename):
     if filtered_df.empty:
         return {}
 
+    # Générer une liste de couleurs distinctes pour chaque client
+    client_colors = px.colors.qualitative.Set1[:len(clients)]  # Utilisation d'une palette de couleurs distinctes
+
+    # Créer un dictionnaire associant chaque client à une couleur
+    color_map = {client: color for client, color in zip(clients, client_colors)}
+
+    # Définir une liste de motifs distincts pour chaque client
+    client_patterns = ["x", "/", "\\", ".", "o", "*", "+", "x", "y", "-"][:len(clients)]  # Motifs distincts
+
+    # Créer un dictionnaire associant chaque client à un motif
+    pattern_map = {client: pattern for client, pattern in zip(clients, client_patterns)}
+
     # Création du graphique avec un histogramme de type 'bar'
     fig = px.bar(
         filtered_df,
         x='SK_ID_CURR',  # Axe X : identifiant des clients
         y=variables[0],  # Axe Y : variable choisie à comparer
-        color='SK_ID_CURR',  # Pour colorer les barres par client
         title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
         barmode='group',  # Utilisation de 'group' pour séparer les barres
         pattern_shape='SK_ID_CURR',  # Ajouter des motifs pour chaque client
-        pattern_shape_sequence=["x", "/", "\\"],  # Liste des motifs à utiliser
-        opacity=0.75  # Définir la transparence des barres
+        opacity=0.75,  # Définir la transparence des barres
+        color_discrete_map=color_map,  # Appliquer le code couleur par client
+        pattern_shape_map=pattern_map,  # Appliquer le code motif par client
     )
 
     # Masquer l'axe des X
     fig.update_xaxes(
-        showticklabels=True,  # Afficher les ticks de l'axe X pour voir les ID des clients
-        ticks="inside",       # Afficher les ticks
-        tickangle=45          # Incliner les étiquettes si nécessaire
+        showticklabels=False,  # Masquer les étiquettes de l'axe X
+        ticks="",              # Masquer les ticks (marques)
+        showgrid=False         # Masquer la grille de l'axe X
     )
 
     # Mise à jour des axes Y
@@ -354,12 +366,13 @@ def update_histogram(clients, variables, content, filename):
             font=dict(size=18),  # Taille de la légende
             title=dict(font=dict(size=18)),  # Titre de la légende
             orientation="h",  # Affichage horizontal de la légende
-            traceorder="normal"  # L'ordre des éléments de légende est normal
+            traceorder="normal",  # L'ordre des éléments de légende est normal
         ),
         margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
     )
 
     return fig
+
 
 
 
