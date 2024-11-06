@@ -329,30 +329,36 @@ def update_histogram(clients, variables, content, filename):
     )
 
     # Mise à jour de la mise en page pour éviter le chevauchement et personnaliser la légende
+    # Mise à jour de la mise en page pour éviter le chevauchement et personnaliser la légende
     fig.update_layout(
-        title=dict(
-            text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-            font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
-            x=0.5,  # Centre le titre
-            xanchor='center'
-        ),
-        # Cacher la légende du code couleur et des motifs
-        showlegend=False,  # Désactive la légende
-        xaxis=dict(
-            title="SK_ID_CURR",  # Titre de l'axe des X
-            type='category',  # Définit l'axe X comme catégorique
-            categoryorder='category ascending',  # Ordre croissant des valeurs de SK_ID_CURR
-            tickfont=dict(size=18),  # Taille de la police des valeurs de l'axe X
-            title_font=dict(size=18),  # Taille du titre de l'axe X
-            tickmode='array',  # Mode de ticks pour plus de contrôle
-        ),
-        yaxis=dict(
-            title=variables[0],  # Titre de l'axe des Y
-            tickfont=dict(size=16),  # Taille de la police des valeurs de l'axe Y
-            title_font=dict(size=18),  # Taille du titre de l'axe Y
-        ),
-        margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
-    )
+    title=dict(
+        text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
+        font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
+        x=0.5,  # Centre le titre
+        xanchor='center'
+    ),
+    # Cacher la légende du code couleur et des motifs
+    showlegend=False,  # Désactive la légende
+    xaxis=dict(
+        title="SK_ID_CURR",  # Titre de l'axe des X
+        type='category',  # Définit l'axe X comme catégorique
+        categoryorder='category ascending',  # Ordre croissant des valeurs de SK_ID_CURR
+        tickfont=dict(size=18),  # Taille de la police des valeurs de l'axe X
+        title_font=dict(size=18),  # Taille du titre de l'axe X
+        tickmode='array',  # Mode de ticks pour plus de contrôle
+        tickangle=0,  # Angle des étiquettes des ticks (0 pour centré)
+        tickson='boundaries',  # Position des étiquettes aux limites des barres
+        tickvals=filtered_df['SK_ID_CURR'].tolist(),  # Associe chaque identifiant aux barres
+        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Texte des étiquettes, centré sous les barres
+        anchor='center',  # Centre les étiquettes sous chaque barre
+    ),
+    yaxis=dict(
+        title=variables[0],  # Titre de l'axe des Y
+        tickfont=dict(size=16),  # Taille de la police des valeurs de l'axe Y
+        title_font=dict(size=18),  # Taille du titre de l'axe Y
+    ),
+    margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
+)
 
     return fig
 
