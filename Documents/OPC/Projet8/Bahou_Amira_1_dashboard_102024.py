@@ -332,40 +332,34 @@ def update_histogram(clients, variables, content, filename):
     fig.update_layout(
     title=dict(
         text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-        font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
-        x=0.5,  # Centre le titre
+        font=dict(size=20, weight='bold'),
+        x=0.5,
         xanchor='center'
     ),
-    showlegend=False,  # Désactive la légende
+    showlegend=False,
     xaxis=dict(
-        title="SK_ID_CURR",  # Titre de l'axe des X
-        type='category',  # Définit l'axe X comme catégorique
-        categoryorder='array',  # Définit l'ordre de catégorie selon les valeurs données
-        categoryarray=filtered_df['SK_ID_CURR'].tolist(),  # Définit l'ordre exact selon les IDs
-        tickvals=filtered_df['SK_ID_CURR'].tolist(),  # Position des ticks alignée avec chaque barre
-        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Affiche chaque SK_ID_CURR en texte
-        tickfont=dict(size=18),  # Taille de la police des valeurs de l'axe X
-        title_font=dict(size=18),  # Taille du titre de l'axe X
-        tickangle=0,  # Garde les labels droits
-        tickmode='array',  # Mode de tick pour centrer les valeurs
-        ticklabelmode='period'  # Assure un centrage plus fin
+        title="SK_ID_CURR",
+        type='category',
+        categoryorder='array',
+        categoryarray=filtered_df['SK_ID_CURR'].tolist(),
+        tickvals=filtered_df['SK_ID_CURR'].tolist(),
+        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],
+        tickfont=dict(size=18),
+        title_font=dict(size=18),
+        tickangle=0,
+        tickmode='array'
     ),
     yaxis=dict(
-        title=variables[0],  # Titre de l'axe des Y
-        tickfont=dict(size=16),  # Taille de la police des valeurs de l'axe Y
-        title_font=dict(size=18),  # Taille du titre de l'axe Y
+        title=variables[0],
+        tickfont=dict(size=16),
+        title_font=dict(size=18),
     ),
-    margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
+    margin=dict(l=40, r=40, t=40, b=40),
+    bargap=0.2  # Réduit l'espace entre les barres pour améliorer la lisibilité
 )
 
 
-
-
     return fig
-
-
-
-
 
 
 
