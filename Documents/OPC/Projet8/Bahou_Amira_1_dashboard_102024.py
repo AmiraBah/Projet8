@@ -342,22 +342,29 @@ def update_histogram(clients, variables, content, filename):
     )
 
     # Mise à jour de la mise en page pour éviter le chevauchement
+   # Mise à jour de la mise en page pour éviter le chevauchement et personnaliser la légende
     fig.update_layout(
-        title=dict(
-            text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-            font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
-            x=0.5,  # Centre le titre
-            xanchor='center'
-        ),
-        legend=dict(
-            title="Clients",  # Titre de la légende
-            font=dict(size=18),  # Taille de la légende
-            itemsizing="constant",  # Gérer la taille des éléments de légende
-            orientation="h",  # Affichage horizontal de la légende
-            traceorder="normal",  # L'ordre des éléments de légende est normal
-        ),
-        margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
+    title=dict(
+        text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
+        font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
+        x=0.5,  # Centre le titre
+        xanchor='center'
+    ),
+    legend=dict(
+        title="Clients",  # Titre de la légende
+        font=dict(size=18),  # Taille de la légende
+        itemsizing="constant",  # Taille constante des éléments de légende
+        orientation="h",  # Affichage horizontal de la légende
+        traceorder="normal",  # L'ordre des éléments de légende est normal
+        # Cette option permet d'avoir un rectangle coloré avec le texte du client
+        itemwidth=30,  # Largeur de chaque élément dans la légende
+        borderpad=5  # Espacement autour de la légende
+    ),
+    # Configuration des motifs dans la légende
+    patternshapeaxis="y",  # Affiche les motifs à la verticale dans la légende
+    margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
     )
+
 
     return fig
 
