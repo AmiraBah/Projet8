@@ -336,18 +336,19 @@ def update_histogram(clients, variables, content, filename):
             x=0.5,  # Centre le titre
             xanchor='center'
         ),
-        legend=dict(
-            title="Clients",  # Titre de la légende
-            font=dict(size=18),  # Taille de la légende
-            itemsizing="constant",  # Taille constante des éléments de légende
-            orientation="h",  # Affichage horizontal de la légende
-            traceorder="normal",  # L'ordre des éléments de légende est normal
-            itemwidth=50,  # Largeur de chaque élément de la légende (pour voir les motifs et couleurs)
+        # Cacher la légende du code couleur et des motifs
+        showlegend=False,  # Désactive la légende
+        xaxis=dict(
+            title="SK_ID_CURR",  # Titre de l'axe des X
+            type='category',  # Définit l'axe X comme catégorique
+            categoryorder='category ascending',  # Ordre croissant des valeurs de SK_ID_CURR
         ),
         margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
     )
 
     return fig
+
+
 
 
 
