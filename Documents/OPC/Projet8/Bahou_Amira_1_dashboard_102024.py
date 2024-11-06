@@ -329,7 +329,6 @@ def update_histogram(clients, variables, content, filename):
     )
 
     # Mise à jour de la mise en page pour éviter le chevauchement et personnaliser la légende
-    # Mise à jour de la mise en page pour éviter le chevauchement et personnaliser la légende
     fig.update_layout(
     title=dict(
         text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
@@ -337,18 +336,17 @@ def update_histogram(clients, variables, content, filename):
         x=0.5,  # Centre le titre
         xanchor='center'
     ),
-    # Cacher la légende du code couleur et des motifs
     showlegend=False,  # Désactive la légende
     xaxis=dict(
         title="SK_ID_CURR",  # Titre de l'axe des X
         type='category',  # Définit l'axe X comme catégorique
-        categoryorder='category ascending',  # Ordre croissant des valeurs de SK_ID_CURR
+        categoryorder='array',  # Définit l'ordre de catégorie selon les valeurs données
+        categoryarray=filtered_df['SK_ID_CURR'].tolist(),  # Définit l'ordre exact selon les IDs
+        tickvals=filtered_df['SK_ID_CURR'].tolist(),  # Position des ticks alignée avec chaque barre
+        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Affiche chaque SK_ID_CURR en texte
         tickfont=dict(size=18),  # Taille de la police des valeurs de l'axe X
         title_font=dict(size=18),  # Taille du titre de l'axe X
-        tickmode='array',  # Mode de ticks pour plus de contrôle
-        tickvals=filtered_df['SK_ID_CURR'].tolist(),  # Associe chaque identifiant aux barres
-        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Texte des étiquettes, centré sous les barres
-        tickangle=0,  # Angle des étiquettes des ticks (0 pour centré)
+        tickangle=0  # Garde les labels droits
     ),
     yaxis=dict(
         title=variables[0],  # Titre de l'axe des Y
@@ -359,13 +357,8 @@ def update_histogram(clients, variables, content, filename):
 )
 
 
+
     return fig
-
-
-
-
-
-
 
 
 
