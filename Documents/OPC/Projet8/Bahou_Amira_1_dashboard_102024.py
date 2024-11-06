@@ -304,8 +304,8 @@ def update_feature_importances(client_id, content, filename):
     State('upload-data', 'filename')
 )
 def update_histogram(clients, variables, content, filename):
-    if clients is None or variables is None or content is None:
-        return {}
+    if clients is None or variables is None or content is None or len(variables) == 0:
+        return {}  # Retourne un graphique vide si l'une des valeurs est absente ou que 'variables' est vide
 
     # Parser les données
     df = parse_contents(content, filename)
@@ -316,7 +316,7 @@ def update_histogram(clients, variables, content, filename):
     if filtered_df.empty:
         return {}
 
-    # Utiliser Plotly pour générer un graphique à barres avec des couleurs et des motifs distincts
+    # Création du graphique avec un histogramme de type 'bar'
     fig = px.bar(
         filtered_df,
         x='SK_ID_CURR',  # Axe X : identifiant des clients
@@ -328,45 +328,28 @@ def update_histogram(clients, variables, content, filename):
         opacity=0.75,  # Définir la transparence des barres
     )
 
-    # Masquer l'axe des X
-    fig.update_xaxes(
-        showticklabels=False,  # Masquer les étiquettes de l'axe X
-        ticks="",              # Masquer les ticks (marques)
-        showgrid=False         # Masquer la grille de l'axe X
-    )
-
-    # Mise à jour des axes Y
-    fig.update_yaxes(
-        title_text="Valeurs de la variable",  # Titre de l'axe Y
-        title_font=dict(size=18),  # Taille de police de l'axe Y
-    )
-
-    # Mise à jour de la mise en page pour éviter le chevauchement
-   # Mise à jour de la mise en page pour éviter le chevauchement et personnaliser la légende
+    # Mise à jour de la mise en page pour éviter le chevauchement et personnaliser la légende
     fig.update_layout(
-    title=dict(
-        text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-        font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
-        x=0.5,  # Centre le titre
-        xanchor='center'
-    ),
-    legend=dict(
-        title="Clients",  # Titre de la légende
-        font=dict(size=18),  # Taille de la légende
-        itemsizing="constant",  # Taille constante des éléments de légende
-        orientation="h",  # Affichage horizontal de la légende
-        traceorder="normal",  # L'ordre des éléments de légende est normal
-        # Cette option permet d'avoir un rectangle coloré avec le texte du client
-        itemwidth=30,  # Largeur de chaque élément dans la légende
-        borderpad=5  # Espacement autour de la légende
-    ),
-    # Configuration des motifs dans la légende
-    patternshapeaxis="y",  # Affiche les motifs à la verticale dans la légende
-    margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
+        title=dict(
+            text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
+            font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
+            x=0.5,  # Centre le titre
+            xanchor='center'
+        ),
+        legend=dict(
+            title="Clients",  # Titre de la légende
+            font=dict(size=18),  # Taille de la légende
+            itemsizing="constant",  # Taille constante des éléments de légende
+            orientation="h",  # Affichage horizontal de la légende
+            traceorder="normal",  # L'ordre des éléments de légende est normal
+            itemwidth=50,  # Largeur de chaque élément de la légende (pour voir les motifs et couleurs)
+            borderpad=5  # Espacement autour de chaque élément dans la légende
+        ),
+        margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
     )
-
 
     return fig
+
 
 
 
