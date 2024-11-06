@@ -317,46 +317,35 @@ def update_histogram(clients, variables, content, filename):
         return {}
 
     # Création du graphique avec un histogramme de type 'bar'
-    fig = px.bar(
-        filtered_df,
-        x='SK_ID_CURR',  # Axe X : identifiant des clients
-        y=variables[0],  # Axe Y : variable choisie à comparer
-        title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-        barmode='group',  # Utilisation de 'group' pour séparer les barres
-        color='SK_ID_CURR',  # Colorer selon l'ID client
-        pattern_shape='SK_ID_CURR',  # Motifs distincts selon l'ID client
-        opacity=0.75,  # Définir la transparence des barres
-    )
-
-    # Mise à jour de la mise en page pour éviter le chevauchement et personnaliser la légende
     fig.update_layout(
     title=dict(
         text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-        font=dict(size=20, weight='bold'),
-        x=0.5,
+        font=dict(size=20, weight='bold'),  # Titre en gras et taille 20
+        x=0.5,  # Centre le titre
         xanchor='center'
     ),
-    showlegend=False,
+    showlegend=False,  # Désactive la légende
     xaxis=dict(
-        title="SK_ID_CURR",
-        type='category',
-        categoryorder='array',
-        categoryarray=filtered_df['SK_ID_CURR'].tolist(),
-        tickvals=filtered_df['SK_ID_CURR'].tolist(),
-        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],
-        tickfont=dict(size=18),
-        title_font=dict(size=18),
-        tickangle=0,
-        tickmode='array'
+        title="SK_ID_CURR",  # Titre de l'axe des X
+        type='category',  # Définit l'axe X comme catégorique
+        categoryorder='array',  # Utilise un ordre spécifique pour les catégories
+        categoryarray=filtered_df['SK_ID_CURR'].tolist(),  # Assure l'ordre exact des ID
+        tickvals=filtered_df['SK_ID_CURR'].tolist(),  # Valeurs de chaque tick
+        ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Texte de chaque tick
+        tickfont=dict(size=16),  # Taille de la police des labels
+        title_font=dict(size=18),  # Taille du titre de l'axe
+        tickangle=-45,  # Incline les labels pour une meilleure lisibilité
+        automargin=True  # Ajuste les marges automatiquement
     ),
     yaxis=dict(
-        title=variables[0],
-        tickfont=dict(size=16),
-        title_font=dict(size=18),
+        title=variables[0],  # Titre de l'axe des Y
+        tickfont=dict(size=16),  # Taille de la police des valeurs de l'axe Y
+        title_font=dict(size=18),  # Taille du titre de l'axe Y
     ),
-    margin=dict(l=40, r=40, t=40, b=40),
-    bargap=0.2  # Réduit l'espace entre les barres pour améliorer la lisibilité
+    margin=dict(l=40, r=40, t=70, b=100),  # Augmente la marge inférieure pour les labels inclinés
+    bargap=0.2  # Espace entre les barres pour un meilleur espacement visuel
 )
+
 
 
     return fig
