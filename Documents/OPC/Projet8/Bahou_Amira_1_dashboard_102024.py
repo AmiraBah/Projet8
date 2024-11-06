@@ -346,11 +346,9 @@ def update_histogram(clients, variables, content, filename):
         tickfont=dict(size=18),  # Taille de la police des valeurs de l'axe X
         title_font=dict(size=18),  # Taille du titre de l'axe X
         tickmode='array',  # Mode de ticks pour plus de contrôle
-        tickangle=0,  # Angle des étiquettes des ticks (0 pour centré)
-        tickson='boundaries',  # Position des étiquettes aux limites des barres
         tickvals=filtered_df['SK_ID_CURR'].tolist(),  # Associe chaque identifiant aux barres
         ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Texte des étiquettes, centré sous les barres
-        anchor='center',  # Centre les étiquettes sous chaque barre
+        tickangle=0,  # Angle des étiquettes des ticks (0 pour centré)
     ),
     yaxis=dict(
         title=variables[0],  # Titre de l'axe des Y
@@ -359,6 +357,7 @@ def update_histogram(clients, variables, content, filename):
     ),
     margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
 )
+
 
     return fig
 
