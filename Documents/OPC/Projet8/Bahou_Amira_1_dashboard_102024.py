@@ -317,18 +317,21 @@ def update_histogram(clients, variables, content, filename):
         return {}
 
     # Création du graphique avec un histogramme de type 'bar'
-    fig = px.bar(
-        filtered_df,
-        x='SK_ID_CURR',  # Axe X : identifiant des clients
-        y=variables[0],  # Axe Y : variable choisie à comparer
-        title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
-        barmode='group',  # Utilisation de 'group' pour séparer les barres
-        color='SK_ID_CURR',  # Colorer selon l'ID client
-        pattern_shape='SK_ID_CURR',  # Motifs distincts selon l'ID client
-        opacity=0.75,  # Définir la transparence des barres
-    )
+    import plotly.express as px
 
-    # Mise à jour de la mise en page pour éviter le chevauchement et personnaliser la légende
+# Création du graphique avec un histogramme de type 'bar'
+    fig = px.bar(
+    filtered_df,
+    x='SK_ID_CURR',  # Axe X : identifiant des clients
+    y=variables[0],  # Axe Y : variable choisie à comparer
+    title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
+    barmode='group',  # Utilisation de 'group' pour séparer les barres
+    color='SK_ID_CURR',  # Colorer selon l'ID client
+    pattern_shape='SK_ID_CURR',  # Motifs distincts selon l'ID client
+    opacity=0.75  # Définir la transparence des barres
+)
+
+# Mise à jour de la mise en page pour centrer les labels sous chaque barre
     fig.update_layout(
     title=dict(
         text=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
@@ -346,8 +349,9 @@ def update_histogram(clients, variables, content, filename):
         ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  # Texte de chaque tick
         tickfont=dict(size=16),  # Taille de la police des labels
         title_font=dict(size=18),  # Taille du titre de l'axe
-        tickangle=-45,  # Incline les labels pour une meilleure lisibilité
-        automargin=True  # Ajuste les marges automatiquement
+        tickangle=0,  # Garder les labels droits
+        automargin=True,  # Ajuste les marges automatiquement
+        tickmode='array',  # Assure que les ticks sont définis explicitement
     ),
     yaxis=dict(
         title=variables[0],  # Titre de l'axe des Y
@@ -355,8 +359,9 @@ def update_histogram(clients, variables, content, filename):
         title_font=dict(size=18),  # Taille du titre de l'axe Y
     ),
     margin=dict(l=40, r=40, t=70, b=100),  # Augmente la marge inférieure pour les labels inclinés
-    bargap=0.2  # Espace entre les barres pour un meilleur espacement visuel
+    bargap=0.2  # Espace entre les barres
 )
+
 
 
     return fig
