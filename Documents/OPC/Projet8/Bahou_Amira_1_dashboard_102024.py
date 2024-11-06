@@ -343,7 +343,6 @@ def update_histogram(clients, variables, content, filename):
             orientation="h",  # Affichage horizontal de la légende
             traceorder="normal",  # L'ordre des éléments de légende est normal
             itemwidth=50,  # Largeur de chaque élément de la légende (pour voir les motifs et couleurs)
-            borderpad=5  # Espacement autour de chaque élément dans la légende
         ),
         margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
     )
