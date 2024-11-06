@@ -316,29 +316,16 @@ def update_histogram(clients, variables, content, filename):
     if filtered_df.empty:
         return {}
 
-    # Générer une liste de couleurs distinctes pour chaque client
-    client_colors = px.colors.qualitative.Set1[:len(clients)]  # Utilisation d'une palette de couleurs distinctes
-
-    # Créer un dictionnaire associant chaque client à une couleur
-    color_map = {client: color for client, color in zip(clients, client_colors)}
-
-    # Définir une liste de motifs distincts pour chaque client
-    client_patterns = ["x", "/", "\\", ".", "o", "*", "+", "x", "y", "-"][:len(clients)]  # Motifs distincts
-
-    # Créer un dictionnaire associant chaque client à un motif
-    pattern_map = {client: pattern for client, pattern in zip(clients, client_patterns)}
-
-    # Création du graphique avec un histogramme de type 'bar'
+    # Utiliser Plotly pour générer un graphique à barres avec des couleurs et des motifs distincts
     fig = px.bar(
         filtered_df,
         x='SK_ID_CURR',  # Axe X : identifiant des clients
         y=variables[0],  # Axe Y : variable choisie à comparer
         title=f"Comparaison de la variable '{variables[0]}' pour les clients sélectionnés",
         barmode='group',  # Utilisation de 'group' pour séparer les barres
-        #pattern_shape='SK_ID_CURR',  # Ajouter des motifs pour chaque client
+        color='SK_ID_CURR',  # Colorer selon l'ID client
+        pattern_shape='SK_ID_CURR',  # Motifs distincts selon l'ID client
         opacity=0.75,  # Définir la transparence des barres
-        color_discrete_map=color_map,  # Appliquer le code couleur par client
-        pattern_shape_map=pattern_map,  # Appliquer le code motif par client
     )
 
     # Masquer l'axe des X
@@ -363,8 +350,9 @@ def update_histogram(clients, variables, content, filename):
             xanchor='center'
         ),
         legend=dict(
+            title="Clients",  # Titre de la légende
             font=dict(size=18),  # Taille de la légende
-            title=dict(font=dict(size=18)),  # Titre de la légende
+            itemsizing="constant",  # Gérer la taille des éléments de légende
             orientation="h",  # Affichage horizontal de la légende
             traceorder="normal",  # L'ordre des éléments de légende est normal
         ),
@@ -372,6 +360,7 @@ def update_histogram(clients, variables, content, filename):
     )
 
     return fig
+
 
 
 
