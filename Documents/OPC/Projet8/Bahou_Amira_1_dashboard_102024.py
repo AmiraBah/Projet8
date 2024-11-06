@@ -342,11 +342,21 @@ def update_histogram(clients, variables, content, filename):
             title="SK_ID_CURR",  # Titre de l'axe des X
             type='category',  # Définit l'axe X comme catégorique
             categoryorder='category ascending',  # Ordre croissant des valeurs de SK_ID_CURR
+            tickfont=dict(size=16),  # Taille de la police des valeurs de l'axe X
+            title_font=dict(size=18),  # Taille du titre de l'axe X
+            tickangle=45,  # Angle des ticks pour éviter le chevauchement (peut être ajusté)
+            tickmode='array',  # Mode de ticks pour plus de contrôle
+        ),
+        yaxis=dict(
+            title=variables[0],  # Titre de l'axe des Y
+            tickfont=dict(size=16),  # Taille de la police des valeurs de l'axe Y
+            title_font=dict(size=18),  # Taille du titre de l'axe Y
         ),
         margin=dict(l=40, r=40, t=40, b=40)  # Marges ajustées
     )
 
     return fig
+
 
 
 
