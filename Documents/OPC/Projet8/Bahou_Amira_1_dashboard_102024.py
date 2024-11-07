@@ -345,7 +345,7 @@ def update_histogram(clients, variables, content, filename):
         categoryarray=filtered_df['SK_ID_CURR'].tolist(),  
         tickvals=filtered_df['SK_ID_CURR'].tolist(),  
         ticktext=[str(i) for i in filtered_df['SK_ID_CURR']],  
-        tickfont=dict(size=16),  
+        tickfont=dict(size=18),  
         title_font=dict(size=18),  
         tickangle=0,  
         automargin=True  
